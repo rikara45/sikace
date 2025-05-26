@@ -31,9 +31,12 @@ class Guru extends Model
 
     public function mataPelajaransDiampu()
     {
-        // Relasi Many-to-Many ke MataPelajaran yang diajar guru ini
-        return $this->belongsToMany(MataPelajaran::class, 'guru_mata_pelajaran')
-                     ->withTimestamps();
+        return $this->belongsToMany(
+            \App\Models\MataPelajaran::class,
+            'kelas_mata_pelajaran',
+            'guru_id', // foreign key di tabel pivot untuk guru
+            'mata_pelajaran_id' // foreign key di tabel pivot untuk mapel
+        )->withPivot('kelas_id', 'tahun_ajaran')->withTimestamps();
     }
 
     public function mataPelajaransDiajar()

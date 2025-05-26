@@ -51,21 +51,24 @@ class Kelas extends Model
     }
 
     /**
+     * Mendapatkan semua siswa yang berada di kelas ini.
+     * Relasi one-to-many (hasMany).
+     */
+    public function siswa()
+    {
+        return $this->hasMany(Siswa::class);
+    }
+
+    /**
      * Mendapatkan mata pelajaran yang diajarkan di kelas ini.
      * Relasi many-to-many (belongsToMany) melalui tabel pivot 'kelas_mata_pelajaran'.
-     * Menyertakan data pivot: id (primary key tabel pivot), guru_id, tahun_ajaran.
-     * Juga melakukan join ke tabel gurus untuk mengambil nama guru pengampu secara langsung.
      */
     public function mataPelajarans(): BelongsToMany
-{
-    return $this->belongsToMany(MataPelajaran::class, 'kelas_mata_pelajaran', 'kelas_id', 'mata_pelajaran_id')
-                ->withPivot('id', 'guru_id', 'tahun_ajaran')
-                ->withTimestamps()
-                // ---> PERIKSA BAGIAN INI <---
-                ->join('gurus', 'kelas_mata_pelajaran.guru_id', '=', 'gurus.id') // Apakah join ini benar? Nama tabel/kolom?
-                ->select('mata_pelajarans.*', 'gurus.nama_guru as pivot_nama_guru', 'kelas_mata_pelajaran.id as pivot_id'); // Apakah select ini benar?
-                // ---> AKHIR BAGIAN PERIKSA <---
-}
+    {
+        return $this->belongsToMany(MataPelajaran::class, 'kelas_mata_pelajaran')
+                    ->withPivot('id', 'guru_id', 'tahun_ajaran') // tambahkan 'id'
+                    ->withTimestamps();
+    }
 
     /**
      * Mendapatkan semua data nilai yang terkait dengan kelas ini.

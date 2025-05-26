@@ -9,8 +9,10 @@ use App\Http\Controllers\Admin\SiswaController as AdminSiswaController;
 use App\Http\Controllers\Admin\GuruController as AdminGuruController;
 use App\Http\Controllers\Admin\KelasController as AdminKelasController;
 use App\Http\Controllers\Admin\MataPelajaranController as AdminMataPelajaranController;
+use App\Http\Controllers\Admin\SettingController as AdminSettingController;
 use App\Http\Controllers\Guru\DashboardController as GuruDashboardController;
 use App\Http\Controllers\Guru\NilaiController as GuruNilaiController;
+use App\Http\Controllers\Guru\PengaturanController as GuruPengaturanController;
 use App\Http\Controllers\Siswa\DashboardController as SiswaDashboardController;
 use App\Http\Controllers\Siswa\NilaiController as SiswaNilaiController;
 
@@ -99,21 +101,30 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Gunakan {pivotId} sebagai parameter untuk identifikasi baris pivot yang akan dihapus
     Route::delete('kelas/{kelas}/remove-assignment/{pivotId}', [AdminKelasController::class, 'removeAssignment'])->name('kelas.removeAssignment');
 
+    // Tambahkan rute setting di sini
+    Route::get('/settings', [AdminSettingController::class, 'index'])->name('settings.index');
+    Route::post('/settings', [AdminSettingController::class, 'update'])->name('settings.update');
+
      // Rute lain untuk admin...
 });
-
 
 // --- RUTE KHUSUS GURU ---
 Route::middleware(['auth', 'role:guru'])->prefix('guru')->name('guru.')->group(function () {
     Route::get('/dashboard', [GuruDashboardController::class, 'index'])->name('dashboard');
 
-    // Input & Lihat Nilai
-    Route::get('/nilai/input', [GuruNilaiController::class, 'create'])->name('nilai.create'); // Tampilkan form pilih kelas/mapel
-    Route::get('/nilai/input/{kelas_id}/{matapelajaran_id}', [GuruNilaiController::class, 'inputNilai'])->name('nilai.input'); // Tampilkan form input nilai spesifik
-    Route::post('/nilai/store', [GuruNilaiController::class, 'store'])->name('nilai.store');
-    Route::get('/nilai/kelas/{kelas_id}', [GuruNilaiController::class, 'showKelas'])->name('nilai.kelas'); // Lihat nilai per kelas yang diajar
-    Route::get('/nilai/mapel/{matapelajaran_id}', [GuruNilaiController::class, 'showMapel'])->name('nilai.mapel'); // Lihat nilai per mapel yang diajar
-    // Rute lain untuk guru (misal: lihat daftar siswa per kelas ajar)
+    // Halaman utama untuk filter, pengaturan bobot/KKM, dan input nilai
+    Route::get('/nilai/input', [GuruNilaiController::class, 'showFormInputNilaiGabungan'])->name('nilai.input'); // Ini akan jadi halaman utama
+
+    // Action untuk menyimpan bobot dan KKM (bisa jadi satu atau tetap dua)
+    Route::post('/nilai/simpan-bobot', [GuruNilaiController::class, 'simpanBobot'])->name('nilai.simpanBobot');
+    Route::post('/nilai/simpan-bobot', [GuruNilaiController::class, 'simpanBobot'])->name('nilai.simpanBobot');
+    Route::post('/nilai/simpan-kkm', [GuruNilaiController::class, 'simpanKkm'])->name('nilai.simpanKkm'); // Atau gabung ke simpanBobot jika logikanya sama
+
+    // Action untuk menyimpan nilai siswa
+    Route::post('/nilai/simpan-nilai-siswa', [GuruNilaiController::class, 'storeNilai'])->name('nilai.store');
+
+    // Rekap Nilai Siswa (tetap sama)
+    Route::get('/rekap-nilai', [GuruNilaiController::class, 'showRekapNilaiForm'])->name('rekap-nilai.index');
 });
 
 // --- RUTE KHUSUS SISWA ---
@@ -126,7 +137,6 @@ Route::middleware(['auth', 'role:siswa'])->prefix('siswa')->name('siswa.')->grou
     // Rute lain untuk siswa (misal: lihat jadwal ujian)
 
 });
-
 
 // Rute Autentikasi Bawaan Breeze (login, register, forgot password, dll)
 // Pastikan file routes/auth.php di-include di RouteServiceProvider

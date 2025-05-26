@@ -90,8 +90,7 @@ class GuruController extends Controller
      */
     public function show(Guru $guru)
     {
-        // Load relasi yang mungkin ingin ditampilkan
-        $guru->load('user', 'kelasWali', 'mataPelajaransDiampu');
+        $guru->load('mataPelajaransDiampu');
         return view('admin.guru.show', compact('guru'));
     }
 

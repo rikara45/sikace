@@ -36,4 +36,12 @@ class MataPelajaran extends Model
         // Satu mata pelajaran punya banyak entri nilai
         return $this->hasMany(Nilai::class);
     }
+
+    public function getGuruPengampuAttribute()
+    {
+        if (!$this->pivot || !$this->pivot->guru_id) {
+            return null;
+        }
+        return \App\Models\Guru::find($this->pivot->guru_id);
+    }
 }

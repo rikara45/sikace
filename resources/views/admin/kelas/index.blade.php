@@ -10,7 +10,7 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <div class="mb-4">
-                        <a href="{{ route('admin.kelas.create') }}" class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-500 ...">
+                        <a href="{{ route('admin.kelas.create') }}" class="inline-flex items-center px-4 py-2 bg-green-600 ...">
                             {{ __('Tambah Kelas') }}
                         </a>
                     </div>

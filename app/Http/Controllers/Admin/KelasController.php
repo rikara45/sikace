@@ -160,40 +160,18 @@ class KelasController extends Controller
      */
     public function assignSubject(Request $request, Kelas $kelas)
     {
-        // Validasi input (mapel & guru ada, kombinasinya unik di kelas & tahun ini)
         $request->validate([
-            'mata_pelajaran_id' => [
-                'required', 'integer', 'exists:mata_pelajarans,id',
-                Rule::unique('kelas_mata_pelajaran')->where(function ($query) use ($kelas, $request) {
-                    return $query->where('kelas_id', $kelas->id)
-                                 ->where('mata_pelajaran_id', $request->mata_pelajaran_id)
-                                 ->where('guru_id', $request->guru_id)
-                                 ->where('tahun_ajaran', $kelas->tahun_ajaran);
-                }),
-            ],
-            'guru_id' => ['required', 'integer', 'exists:gurus,id'],
-        ], [
-            'mata_pelajaran_id.unique' => 'Kombinasi Mata Pelajaran dan Guru ini sudah ditugaskan untuk kelas dan tahun ajaran ini.',
-            'mata_pelajaran_id.exists' => 'Mata Pelajaran tidak valid.',
-            'guru_id.exists' => 'Guru tidak valid.',
+            'mata_pelajaran_id' => 'required|exists:mata_pelajarans,id',
+            'guru_id' => 'required|exists:gurus,id',
         ]);
 
-        try {
-            // Tambahkan relasi ke tabel pivot 'kelas_mata_pelajaran'
-            $kelas->mataPelajarans()->attach($request->mata_pelajaran_id, [
-                'guru_id' => $request->guru_id,
-                'tahun_ajaran' => $kelas->tahun_ajaran,
-                'created_at' => now(), // Set timestamps jika perlu
-                'updated_at' => now(),
-            ]);
+        // Simpan ke pivot dengan data tambahan guru_id
+        $kelas->mataPelajarans()->attach($request->mata_pelajaran_id, [
+            'guru_id' => $request->guru_id,
+            'tahun_ajaran' => $kelas->tahun_ajaran, // <-- tambahkan ini!
+        ]);
 
-            return redirect()->route('admin.kelas.show', $kelas)
-                             ->with('success', 'Mata pelajaran berhasil ditugaskan ke kelas.');
-
-        } catch (\Exception $e) {
-            return redirect()->route('admin.kelas.show', $kelas)
-                             ->with('error', 'Gagal menugaskan mata pelajaran: ' . $e->getMessage());
-        }
+        return redirect()->route('admin.kelas.show', $kelas)->with('success', 'Mata pelajaran berhasil ditambahkan ke kelas.');
     }
 
     /**

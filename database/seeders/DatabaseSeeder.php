@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             UserSeeder::class,
             // Tambahkan seeder lain jika perlu (KelasSeeder, MataPelajaranSeeder, dll.)
+            SettingSeeder::class, // <-- Tambahkan baris ini
         ]);
     }
 }

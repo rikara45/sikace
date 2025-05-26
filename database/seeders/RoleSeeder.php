@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission; // Jika perlu permission spesifik
+use Spatie\Permission\Models\Permission; // Jika Anda juga membuat permission
 
 class RoleSeeder extends Seeder
 {
@@ -18,23 +18,26 @@ class RoleSeeder extends Seeder
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
         // Buat Roles
-        Role::create(['name' => 'admin']);
-        Role::create(['name' => 'guru']);
-        Role::create(['name' => 'siswa']);
+        // Gunakan firstOrCreate untuk menghindari error jika role sudah ada
+        Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+        Role::firstOrCreate(['name' => 'guru', 'guard_name' => 'web']);
+        Role::firstOrCreate(['name' => 'siswa', 'guard_name' => 'web']);
 
-        // Contoh jika ingin membuat permission spesifik (opsional)
-        // Permission::create(['name' => 'manage users']);
-        // Permission::create(['name' => 'input nilai']);
-        // Permission::create(['name' => 'view nilai']);
+        // Contoh jika Anda juga membuat permission dan mengassignnya
+        // $adminRole = Role::where('name', 'admin')->first();
+        // $guruRole = Role::where('name', 'guru')->first();
+        // $siswaRole = Role::where('name', 'siswa')->first();
 
-        // Berikan permission ke role (opsional)
-        // $roleAdmin = Role::findByName('admin');
-        // $roleAdmin->givePermissionTo(Permission::all());
+        // $manageUsersPermission = Permission::firstOrCreate(['name' => 'manage users', 'guard_name' => 'web']);
+        // $inputNilaiPermission = Permission::firstOrCreate(['name' => 'input nilai', 'guard_name' => 'web']);
+        // $viewNilaiPermission = Permission::firstOrCreate(['name' => 'view nilai', 'guard_name' => 'web']);
 
-         // $roleGuru = Role::findByName('guru');
-         // $roleGuru->givePermissionTo(['input nilai', 'view nilai']); // Contoh
-
-        // $roleSiswa = Role::findByName('siswa');
-        // $roleSiswa->givePermissionTo('view nilai'); // Contoh
+        // if ($adminRole && $manageUsersPermission) {
+        //     $adminRole->givePermissionTo($manageUsersPermission);
+        // }
+        // if ($guruRole && $inputNilaiPermission) {
+        //    $guruRole->givePermissionTo($inputNilaiPermission);
+        // }
+        // ... dan seterusnya ...
     }
 }

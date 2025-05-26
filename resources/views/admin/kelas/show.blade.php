@@ -14,7 +14,7 @@
                          <div>
                             <a href="{{ route('admin.kelas.index') }}" class="text-blue-600 hover:text-blue-900 mb-4 inline-block">&larr; Kembali ke Daftar Kelas</a>
                             <table class="table-auto w-full mb-6">
-                                 <tbody>
+                                 <tbody></tbody>
                                     <tr> <td class="px-4 py-2 font-semibold text-gray-700" >Nama Kelas</td> <td class="px-4 py-2">{{ $kelas->nama_kelas }}</td> </tr>
                                     <tr class="bg-gray-50"> <td class="px-4 py-2 font-semibold text-gray-700" >Tahun Ajaran</td> <td class="px-4 py-2">{{ $kelas->tahun_ajaran }}</td> </tr>
                                     <tr> <td class="px-4 py-2 font-semibold text-gray-700" >Wali Kelas</td> <td class="px-4 py-2">{{ $kelas->waliKelas?->nama_guru ?? '-' }}</td> </tr>
@@ -54,9 +54,9 @@
                                     <tr>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $index + 1 }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $mapel->nama_mapel }} {{ $mapel->kode_mapel ? '('.$mapel->kode_mapel.')' : '' }}</td>
-                                        {{-- Ambil nama guru dari pivot data yang sudah di-select/join di model --}}
+                                        {{-- Ambil nama guru dari koleksi $availableTeachers --}}
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {{ $mapel->pivot->guru_id && $mapel->guruPengampu ? $mapel->guruPengampu->nama_guru : 'Guru tidak ditemukan' }}
+                                            {{ $mapel->guruPengampu?->nama_guru ?? 'Guru tidak ditemukan' }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             {{-- Form untuk Hapus Penugasan --}}

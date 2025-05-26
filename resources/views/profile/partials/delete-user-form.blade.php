@@ -1,3 +1,9 @@
+@php
+    // Misal: user punya atribut 'is_admin' atau 'role'
+    $isAdmin = auth()->user()?->is_admin ?? false;
+@endphp
+
+@if($isAdmin)
 <section class="space-y-6">
     <header>
         <h2 class="text-lg font-medium text-gray-900">
@@ -53,3 +59,4 @@
         </form>
     </x-modal>
 </section>
+@endif

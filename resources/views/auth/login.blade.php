@@ -281,7 +281,7 @@
             </div>
 
             <h2>Selamat datang</h2> {{-- Reverted to original text --}}
-            <p>Silakan masukkan detail Anda</p> {{-- Reverted to original text --}}
+            <p>Silakan masukkan Email dan Kata Sandi Anda</p> {{-- Reverted to original text --}}
 
             <x-auth-session-status class="session-status" :status="session('status')" />
 
