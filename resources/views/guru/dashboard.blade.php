@@ -19,7 +19,7 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <h3 class="text-lg font-bold mb-4">{{ __("Selamat datang di Dashboard Guru!") }}</h3>
-                    <p class="mb-4">Gunakan dashboard ini untuk mengelola kelas dan nilai siswa.</p>
+                    <p class="mb-4">Hai Kamu @Guru</p>
                     
                     {{-- Tambahkan ringkasan kelas atau nilai belum diinput di sini --}}
                 </div>
