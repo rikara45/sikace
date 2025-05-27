@@ -4,13 +4,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Siswa;
-use App\Models\Kelas; // Import model Kelas
-use App\Models\User; // Import model User
-use App\Http\Requests\Admin\StoreSiswaRequest; // Import request
-use App\Http\Requests\Admin\UpdateSiswaRequest; // Import request
+use App\Models\Kelas;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash; // Import Hash
-use Illuminate\Support\Facades\DB; // Import DB facade for transactions
+use App\Http\Requests\Admin\StoreSiswaRequest;
+use App\Http\Requests\Admin\UpdateSiswaRequest;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 
 class SiswaController extends Controller
 {
@@ -47,49 +47,41 @@ class SiswaController extends Controller
      */
     public function store(StoreSiswaRequest $request)
     {
-        // Gunakan transaction untuk memastikan konsistensi data User dan Siswa
+        $validated = $request->validated();
+
         DB::beginTransaction();
         try {
-            $validated = $request->validated();
-            $userId = null;
+            // Buat "email" unik untuk tabel users berdasarkan NIS
+            // Ini hanya untuk memenuhi constraint unique email di tabel users,
+            // Siswa TIDAK AKAN LOGIN dengan ini.
+            $pseudoEmail = $validated['nis'] . '@internal.siswa'; // Pastikan domain ini tidak dipakai untuk email asli
 
-            // 1. Buat User jika email diisi
-            if (!empty($validated['email'])) {
-                $user = User::create([
-                    'name' => $validated['nama_siswa'],
-                    'email' => $validated['email'],
-                    // Berikan password default atau dari input, jangan lupa hash
-                    'password' => isset($validated['password']) ? Hash::make($validated['password']) : Hash::make('password'), // Contoh password default 'password'
-                    'email_verified_at' => now(), // Anggap langsung verified
-                ]);
-                $user->assignRole('siswa'); // Assign role siswa
-                $userId = $user->id;
-            }
+            // Buat user baru
+            $user = User::create([
+                'name' => $validated['nama_siswa'],
+                'email' => $pseudoEmail,
+                'password' => Hash::make($validated['nis']), // Password awal adalah NIS
+                'email_verified_at' => now(), // Anggap langsung terverifikasi
+            ]);
+            $user->assignRole('siswa');
 
-            // 2. Buat data Siswa
+            // Buat data Siswa
             Siswa::create([
+                'user_id' => $user->id,
                 'nama_siswa' => $validated['nama_siswa'],
                 'nis' => $validated['nis'],
-                'nisn' => $validated['nisn'],
+                'nisn' => $validated['nisn'] ?? null,
                 'kelas_id' => $validated['kelas_id'],
                 'jenis_kelamin' => $validated['jenis_kelamin'] ?? null,
-                'user_id' => $userId, // Masukkan user_id jika user dibuat
             ]);
 
-            DB::commit(); // Simpan perubahan jika semua berhasil
-
-            return redirect()->route('admin.siswa.index')
-                             ->with('success', 'Data siswa berhasil ditambahkan.');
-
+            DB::commit();
+            return redirect()->route('admin.siswa.index')->with('success', 'Data siswa berhasil ditambahkan.');
         } catch (\Exception $e) {
-            DB::rollBack(); // Batalkan perubahan jika terjadi error
-            // Log error $e->getMessage()
-            return redirect()->back()
-                             ->with('error', 'Gagal menambahkan data siswa: ' . $e->getMessage())
-                             ->withInput(); // Kembalikan input sebelumnya
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Gagal menambahkan data siswa: ' . $e->getMessage())->withInput();
         }
     }
-
 
     /**
      * Display the specified resource.
@@ -116,57 +108,51 @@ class SiswaController extends Controller
      */
     public function update(UpdateSiswaRequest $request, Siswa $siswa)
     {
+        $validated = $request->validated();
+
         DB::beginTransaction();
         try {
-            $validated = $request->validated();
-             $userId = $siswa->user_id; // Ambil user_id yang sudah ada
-
-             // 1. Update atau Buat User jika perlu
-             if (!empty($validated['email'])) {
-                 if ($siswa->user) { // Jika siswa sudah punya akun user
-                     $siswa->user->update([
-                         'name' => $validated['nama_siswa'],
-                         'email' => $validated['email'],
-                         // Hanya update password jika diisi
-                         'password' => !empty($validated['password']) ? Hash::make($validated['password']) : $siswa->user->password,
-                     ]);
-                 } else { // Jika siswa belum punya akun user, buat baru
-                     $user = User::create([
-                         'name' => $validated['nama_siswa'],
-                         'email' => $validated['email'],
-                         'password' => !empty($validated['password']) ? Hash::make($validated['password']) : Hash::make('password'),
-                         'email_verified_at' => now(),
-                     ]);
-                     $user->assignRole('siswa');
-                     $userId = $user->id; // Update userId untuk disimpan di tabel siswa
-                 }
-             } elseif ($siswa->user && empty($validated['email'])) {
-                 // Jika email dikosongkan & sebelumnya ada user, mungkin hapus user? (Optional, perlu konfirmasi)
-                 // $siswa->user->delete();
-                 // $userId = null;
-             }
-
-
-             // 2. Update data Siswa
+            // Update data Siswa
             $siswa->update([
-                 'nama_siswa' => $validated['nama_siswa'],
-                 'nis' => $validated['nis'],
-                 'nisn' => $validated['nisn'],
-                 'kelas_id' => $validated['kelas_id'],
-                 'jenis_kelamin' => $validated['jenis_kelamin'] ?? null,
-                 'user_id' => $userId, // Update user_id
-             ]);
+                'nama_siswa' => $validated['nama_siswa'],
+                'nis' => $validated['nis'], // Jika NIS diubah, password user juga harus dipertimbangkan untuk diubah
+                'nisn' => $validated['nisn'] ?? null,
+                'kelas_id' => $validated['kelas_id'],
+                'jenis_kelamin' => $validated['jenis_kelamin'] ?? null,
+            ]);
 
-             DB::commit();
+            // Update data User terkait (nama, dan mungkin password jika NIS berubah dan password belum diubah siswa)
+            if ($siswa->user) {
+                $userDataToUpdate = ['name' => $validated['nama_siswa']];
 
-            return redirect()->route('admin.siswa.index')
-                             ->with('success', 'Data siswa berhasil diperbarui.');
+                // Jika NIS (yang jadi password awal) diubah oleh admin, DAN siswa belum pernah ganti password sendiri
+                // Anda mungkin ingin mengupdate password user juga. Ini butuh logika tambahan
+                // untuk mengecek apakah password user masih hash dari NIS lama.
+                // Untuk saat ini, kita tidak update password dari sini kecuali ada input password khusus.
+                // Jika Anda menyediakan field password di form edit siswa oleh admin:
+                // if (!empty($validated['password'])) {
+                //     $userDataToUpdate['password'] = Hash::make($validated['password']);
+                // }
+                // Jika NIS diubah dan password user masih sama dengan hash NIS lama:
+                // if ($siswa->isDirty('nis') && Hash::check($siswa->getOriginal('nis'), $siswa->user->password)) {
+                //     $userDataToUpdate['password'] = Hash::make($validated['nis']);
+                // }
 
+
+                // Jika NIS diubah, "email" pseudo juga perlu diubah
+                if ($siswa->isDirty('nis')) {
+                     $userDataToUpdate['email'] = $validated['nis'] . '@internal.siswa';
+                }
+
+
+                $siswa->user->update($userDataToUpdate);
+            }
+
+            DB::commit();
+            return redirect()->route('admin.siswa.index')->with('success', 'Data siswa berhasil diperbarui.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()
-                             ->with('error', 'Gagal memperbarui data siswa: ' . $e->getMessage())
-                             ->withInput();
+            return redirect()->back()->with('error', 'Gagal memperbarui data siswa: ' . $e->getMessage())->withInput();
         }
     }
 

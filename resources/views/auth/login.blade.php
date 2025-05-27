@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SMA KARTIKA XIX 1 BANDUNG - Login</title>
+    <title>Login e-Nilai</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
         * {
@@ -96,7 +96,7 @@
             font-weight: 500; /* Keep label weight */
         }
 
-        input[type="email"],
+        input[type="text"], /* Apply to text input as well */
         input[type="password"] {
             width: 100%;
             padding: 0.65rem 0.75rem; /* Slightly reduced vertical padding */
@@ -107,6 +107,7 @@
             transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
             line-height: 1.5; /* Ensure consistent line height */
         }
+         input[type="text"]:focus, /* Apply to text input as well */
          input[type="email"]:focus,
          input[type="password"]:focus {
             outline: none;
@@ -251,7 +252,7 @@
                 margin-bottom: 1rem;
             }
 
-             input[type="email"],
+             input[type="text"], /* Apply to text input as well */
              input[type="password"] {
                  font-size: 0.85rem; /* Adjust mobile input size */
                  padding: 0.6rem 0.7rem;
@@ -280,8 +281,8 @@
                 <h1>SMA KARTIKA XIX 1 BANDUNG</h1>
             </div>
 
-            <h2>Selamat datang</h2> {{-- Reverted to original text --}}
-            <p>Silakan masukkan Email dan Kata Sandi Anda</p> {{-- Reverted to original text --}}
+            <h2>Selamat datang</h2>
+            <p>Silakan masukkan kredensial Anda</p>
 
             <x-auth-session-status class="session-status" :status="session('status')" />
 
@@ -289,14 +290,14 @@
                 @csrf
 
                 <div>
-                    <label for="email">Email</label>
-                    <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username">
-                    @error('email')
-                        <span class="input-error-message">{{ $message }}</span>
-                    @enderror
+                    <label for="login_identifier">NIS (untuk Siswa) / Email (untuk Admin/Guru)</label>
+                    <input id="login_identifier" type="text" name="login_identifier" value="{{ old('login_identifier') }}" required autofocus autocomplete="username">
+                    {{-- Error bisa untuk login_identifier, email, atau nis --}}
+                    @error('login_identifier') <span class="input-error-message">{{ $message }}</span> @enderror
+                    @error('email') <span class="input-error-message">{{ $message }}</span> @enderror
+                    @error('nis') <span class="input-error-message">{{ $message }}</span> @enderror
                 </div>
 
-                {{-- Added a container div for better spacing control --}}
                 <div class="password-field-container">
                     <label for="password">Kata Sandi</label>
                     <input id="password" type="password" name="password" required autocomplete="current-password">
@@ -308,15 +309,14 @@
                 <div class="options">
                     <label for="remember_me">
                         <input id="remember_me" type="checkbox" name="remember">
-                        <span>Ingat password</span> {{-- Reverted to original text --}}
+                        <span>Ingat saya</span>
                     </label>
-
-                    @if (Route::has('password.request'))
-                        {{-- Removed the link as it's not in the original screenshot --}}
-                        {{-- <a href="{{ route('password.request') }}">
+                    {{-- Hapus Lupa Password jika tidak relevan untuk NIS --}}
+                    {{-- @if (Route::has('password.request'))
+                        <a href="{{ route('password.request') }}">
                             Lupa kata sandi?
-                        </a> --}}
-                    @endif
+                        </a>
+                    @endif --}}
                 </div>
 
                 <button type="submit" class="btn-green">

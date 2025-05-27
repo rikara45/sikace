@@ -53,23 +53,24 @@ class UserSeeder extends Seeder
 
 
         // --- Buat Contoh User Siswa (Opsional) ---
+        $nisContoh = 'S1001'; // Pastikan unik
+        $namaSiswa = 'Ani Siswa';
         $siswaUser = User::firstOrCreate(
-            ['email' => 'kia@sikace.test'],
-            [
-                'name' => 'Rizkia Ahmad Fadillah',
-                'password' => Hash::make('password'),
+            ['email' => $nisContoh . '@internal.siswa'], // Kriteria pencarian (pseudo-email)
+            [ // Data jika baru
+                'name' => $namaSiswa,
+                'password' => Hash::make($nisContoh), // Password adalah NIS
                 'email_verified_at' => now(),
             ]
         );
         $siswaUser->assignRole('siswa');
 
-        // Buat data Siswa terkait jika user baru dibuat atau jika belum ada data siswa untuk user ini
         Siswa::firstOrCreate(
-            ['user_id' => $siswaUser->id],
-            [
-                 'nama_siswa' => $siswaUser->name,
-                 'nis' => 'S1001', // Contoh NIS unik
-                 // 'kelas_id' => 1 // Anda mungkin perlu seeder untuk kelas dulu atau handle ini
+            ['nis' => $nisContoh], // Kriteria pencarian siswa berdasarkan NIS
+            [ // Data jika baru
+                 'user_id' => $siswaUser->id,
+                 'nama_siswa' => $namaSiswa,
+                 // 'kelas_id' => 1 // Pastikan kelas dengan ID 1 sudah ada
             ]
         );
 
