@@ -7,7 +7,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Nilai;
 use App\Models\Siswa;
-use App\Models\Setting; // <-- Import Setting
+use App\Models\MataPelajaran;
+use App\Models\BobotPenilaian; // <-- Import BobotPenilaian
+use App\Models\Setting; // Import Setting class
 
 class NilaiController extends Controller
 {
@@ -93,9 +95,8 @@ class NilaiController extends Controller
             abort(403, 'Akses Ditolak: Anda bukan Siswa.');
         }
 
-        $mataPelajaran = \App\Models\MataPelajaran::findOrFail($matapelajaran_id); // Ambil data mapel, error 404 jika tidak ada
+        $mataPelajaran = MataPelajaran::findOrFail($matapelajaran_id);
 
-        // Ambil opsi filter (Tahun Ajaran & Semester) HANYA untuk mapel ini
         $availableFilters = Nilai::where('siswa_id', $siswa->id)
             ->where('mata_pelajaran_id', $mataPelajaran->id)
             ->select('tahun_ajaran', 'semester')
@@ -105,16 +106,13 @@ class NilaiController extends Controller
             ->get();
 
         if ($availableFilters->isEmpty()) {
-            // Jika siswa belum punya nilai sama sekali untuk mapel ini
             return redirect()->route('siswa.nilai.index')
                              ->with('info', 'Anda belum memiliki data nilai untuk mata pelajaran ' . $mataPelajaran->nama_mapel . '.');
         }
 
-        // Tentukan filter yang aktif
         $filterTahunAjaran = $request->input('tahun_ajaran', $availableFilters->first()?->tahun_ajaran);
         $filterSemester = $request->input('semester', $availableFilters->first()?->semester);
 
-        // Ambil Data Nilai Sesuai Filter untuk mapel ini
         $nilaiDetail = Nilai::where('siswa_id', $siswa->id)
             ->where('mata_pelajaran_id', $mataPelajaran->id)
             ->when($filterTahunAjaran, function ($query, $tahun) {
@@ -123,22 +121,42 @@ class NilaiController extends Controller
             ->when($filterSemester, function ($query, $semester) {
                 return $query->where('semester', $semester);
             })
-            ->with(['guru', 'kelas']) // Eager load relasi Guru Penginput dan Kelas saat nilai diberikan
-            ->first(); // Asumsi satu record nilai per siswa per mapel per semester per tahun ajaran
+            ->with(['guru', 'kelas'])
+            ->first();
 
         $rataRataTugas = null;
-        if ($nilaiDetail && is_array($nilaiDetail->nilai_tugas)) {
-            $rataRataTugas = Nilai::calculateRataRataTugas($nilaiDetail->nilai_tugas);
+        $kkmValue = null; // Inisialisasi KKM
+
+        if ($nilaiDetail) {
+            if (is_array($nilaiDetail->nilai_tugas) && count(array_filter($nilaiDetail->nilai_tugas, 'is_numeric')) > 0) {
+                $rataRataTugas = Nilai::calculateRataRataTugas($nilaiDetail->nilai_tugas);
+            }
+
+            // Ambil KKM dari BobotPenilaian berdasarkan konteks nilaiDetail
+            // $nilaiDetail->guru_id adalah guru yang menginput nilai, yang seharusnya sama dengan guru yang set KKM
+            if ($nilaiDetail->kelas_id && $nilaiDetail->mata_pelajaran_id && $nilaiDetail->tahun_ajaran && $nilaiDetail->guru_id) {
+                 $bobotSetting = BobotPenilaian::where('guru_id', $nilaiDetail->guru_id)
+                    ->where('mata_pelajaran_id', $nilaiDetail->mata_pelajaran_id)
+                    ->where('kelas_id', $nilaiDetail->kelas_id)
+                    ->where('tahun_ajaran', $nilaiDetail->tahun_ajaran)
+                    ->first();
+                if ($bobotSetting) {
+                    $kkmValue = $bobotSetting->kkm;
+                }
+            }
+            // Jika $kkmValue masih null, bisa jadi guru belum set KKM untuk konteks ini.
+            // Anda bisa menambahkan fallback ke KKM default jika ada, atau biarkan 'N/A'.
         }
 
         return view('siswa.nilai.show_mapel', compact(
             'siswa',
             'mataPelajaran',
-            'nilaiDetail', // Bisa null jika tidak ada data untuk filter terpilih
+            'nilaiDetail',
             'availableFilters',
             'filterTahunAjaran',
             'filterSemester',
-            'rataRataTugas'
+            'rataRataTugas',
+            'kkmValue' // <-- Kirim KKM ke view
         ));
     }
 }
