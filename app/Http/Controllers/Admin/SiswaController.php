@@ -11,6 +11,9 @@ use App\Http\Requests\Admin\StoreSiswaRequest;
 use App\Http\Requests\Admin\UpdateSiswaRequest;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel; // Tambahkan ini
+use App\Imports\SiswaImport;          // Tambahkan ini
+use Illuminate\Support\Facades\Log; // Tambahkan ini untuk logging error
 
 class SiswaController extends Controller
 {
@@ -179,6 +182,86 @@ class SiswaController extends Controller
              DB::rollBack();
              return redirect()->route('admin.siswa.index')
                           ->with('error', 'Gagal menghapus data siswa: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Show the form for importing students.
+     */
+    public function showImportForm()
+    {
+        $kelasList = Kelas::orderBy('tahun_ajaran', 'desc')->orderBy('nama_kelas', 'asc')->get();
+        return view('admin.siswa.import', compact('kelasList'));
+    }
+
+    /**
+     * Handle the import of students from CSV.
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'csv_file' => 'required|file|mimes:csv,txt',
+            'kelas_id' => 'required|integer|exists:kelas,id',
+        ]);
+
+        $file = $request->file('csv_file');
+        $kelasId = $request->input('kelas_id');
+
+        $import = new SiswaImport($kelasId);
+
+        try {
+            Excel::import($import, $file);
+
+            $importedCount = $import->getImportedCount();
+            $skippedCount = $import->getSkippedCount();
+            $errorsEncountered = $import->getErrorsEncountered();
+
+            $messages = [];
+            if ($importedCount > 0) {
+                $messages[] = "Berhasil mengimpor {$importedCount} data siswa.";
+            }
+            if ($skippedCount > 0) {
+                $messages[] = "Gagal/Melewati {$skippedCount} data siswa.";
+            }
+
+            if (!empty($errorsEncountered)) {
+                // Batasi jumlah error yang ditampilkan agar tidak terlalu panjang
+                $displayErrors = array_slice($errorsEncountered, 0, 10);
+                $errorMessage = "Detail kesalahan: <br>" . implode("<br>", $displayErrors);
+                if (count($errorsEncountered) > 10) {
+                    $errorMessage .= "<br>...dan " . (count($errorsEncountered) - 10) . " kesalahan lainnya (lihat log untuk detail).";
+                }
+                 return redirect()->route('admin.siswa.index')
+                             ->with('warning', implode(" ", $messages)) // Menggunakan warning jika ada yg diskip
+                             ->with('import_errors', $errorMessage); // Kirim detail error terpisah
+            }
+
+            if ($importedCount > 0 && $skippedCount == 0) {
+                 return redirect()->route('admin.siswa.index')->with('success', implode(" ", $messages));
+            } elseif ($importedCount == 0 && $skippedCount > 0) {
+                 return redirect()->route('admin.siswa.index')->with('error', implode(" ", $messages));
+            } elseif ($importedCount > 0 && $skippedCount > 0) {
+                 return redirect()->route('admin.siswa.index')->with('warning', implode(" ", $messages));
+            } else {
+                 return redirect()->route('admin.siswa.index')->with('info', 'Tidak ada data siswa yang diproses dari file.');
+            }
+
+
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+            $failures = $e->failures();
+            $errorMessages = [];
+            foreach ($failures as $failure) {
+                $errorMessages[] = "Baris " . $failure->row() . ": " . implode(", ", $failure->errors()) . " (Nilai: " . implode(', ', $failure->values()) . ")";
+            }
+            return redirect()->back()
+                         ->with('error', 'Gagal mengimpor data. Terdapat kesalahan validasi pada file CSV.')
+                         ->with('import_validation_errors', $errorMessages)
+                         ->withInput();
+        } catch (\Exception $e) {
+            Log::error('Error importing siswa: ' . $e->getMessage() . ' Stack: ' . $e->getTraceAsString());
+            return redirect()->back()
+                         ->with('error', 'Terjadi kesalahan saat mengimpor data siswa: ' . $e->getMessage())
+                         ->withInput();
         }
     }
 }

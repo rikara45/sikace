@@ -1,3 +1,25 @@
+@push('styles')
+<style>
+    .custom-scroll::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .custom-scroll::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+
+    .custom-scroll::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 4px;
+    }
+
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+</style>
+@endpush
+
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
@@ -11,24 +33,27 @@
                 <div class="p-6 text-gray-900">
 
                     {{-- Tombol Tambah --}}
-                    <div class="mb-4">
+                    <div class="mb-4 flex justify-between items-center">
                         <a href="{{ route('admin.siswa.create') }}"
-                        class="inline-flex items-center px-4 py-2 bg-green-600 ...">
-                            {{ __('Tambah Siswa') }}
+                        class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                            <i class="fas fa-plus mr-2"></i> {{ __('Tambah Siswa') }}
+                        </a>
+                        <a href="{{ route('admin.siswa.showImportForm') }}"
+                        class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                            <i class="fas fa-file-import mr-2"></i> {{ __('Impor Siswa dari CSV') }}
                         </a>
                     </div>
 
                      {{-- Pesan Sukses/Error --}}
-                     @if (session('success'))
-                        <div class="mb-4 p-4 bg-green-100 text-green-700 rounded">
-                            {{ session('success') }}
+                     @include('layouts.partials.alert-messages')
+
+                     {{-- Peringatan Selama Impor Sebelumnya --}}
+                     @if (session('import_errors'))
+                        <div class="mb-4 p-4 bg-yellow-100 border border-yellow-300 text-yellow-700 rounded">
+                            <p class="font-bold">Peringatan Selama Impor Sebelumnya:</p>
+                            <div class="text-sm custom-scroll overflow-y-auto max-h-32">{!! session('import_errors') !!}</div>
                         </div>
-                     @endif
-                     @if (session('error'))
-                         <div class="mb-4 p-4 bg-red-100 text-red-700 rounded">
-                             {{ session('error') }}
-                         </div>
-                     @endif
+                    @endif
 
                      {{-- Form Pencarian (Opsional) --}}
                      <form method="GET" action="{{ route('admin.siswa.index') }}" class="mb-4">
