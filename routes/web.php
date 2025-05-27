@@ -15,6 +15,7 @@ use App\Http\Controllers\Guru\NilaiController as GuruNilaiController;
 use App\Http\Controllers\Guru\PengaturanController as GuruPengaturanController;
 use App\Http\Controllers\Siswa\DashboardController as SiswaDashboardController;
 use App\Http\Controllers\Siswa\NilaiController as SiswaNilaiController;
+use App\Http\Controllers\LaporanController; // Tambahkan ini di atas
 
 /*
 |--------------------------------------------------------------------------
@@ -75,6 +76,17 @@ Route::middleware('auth')->group(function () {
          Auth::logout();
          return redirect('/login')->withErrors('Akses tidak valid.');
     })->name('dashboard.redirect');
+
+    // Rute untuk cetak PDF
+    // Rute untuk Siswa atau Admin yang melihat rapor siswa
+    Route::get('/laporan/rapor-siswa/{siswa}/cetak', [LaporanController::class, 'cetakRaporSiswa'])
+        ->name('laporan.rapor.siswa.cetak')
+        ->middleware('can:view,siswa'); // Tambahkan policy jika perlu
+
+    // Rute untuk Guru yang mencetak rekap nilai kelas
+    Route::get('/laporan/rekap-nilai-kelas/{kelas}/cetak', [LaporanController::class, 'cetakRekapNilaiKelas'])
+        ->name('laporan.rekap.nilai.kelas.cetak')
+        ->middleware('role:guru'); // Hanya guru
 
 });
 
