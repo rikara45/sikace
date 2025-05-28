@@ -78,13 +78,16 @@
                     @if($siswa->nilais->count() > 0)
                         @php
                             // Ambil data nilai terakhir (berdasarkan tahun ajaran & semester terbaru)
-                            $latestNilaiGroup = $siswa->nilais
-                                                ->sortByDesc('tahun_ajaran')
-                                                ->sortByDesc('semester')
-                                                ->groupBy(['tahun_ajaran', 'semester'])
-                                                ->first();
-                            $latestTahun = $latestNilaiGroup ? $latestNilaiGroup->first()->tahun_ajaran : null;
-                            $latestSemester = $latestNilaiGroup ? $latestNilaiGroup->first()->semester : null;
+                            $grouped = $siswa->nilais
+                                ->sortByDesc('tahun_ajaran')
+                                ->sortByDesc('semester')
+                                ->groupBy(function($item) {
+                                    return $item->tahun_ajaran . '||' . $item->semester;
+                                });
+
+                            $latestKey = $grouped->keys()->first();
+                            $latestNilaiGroup = $latestKey ? $grouped[$latestKey] : null;
+                            [$latestTahun, $latestSemester] = $latestKey ? explode('||', $latestKey) : [null, null];
                         @endphp
 
                         @if($latestNilaiGroup)

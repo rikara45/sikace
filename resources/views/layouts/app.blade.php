@@ -59,7 +59,7 @@
                         }"
                     >
                         <div class="h-16 flex items-center justify-between px-4 border-b border-blue-600 flex-shrink-0">
-                            <span class="text-xl font-semibold text-white" x-show="sidebarOpen || isMobile">Admin Panel</span>
+                            <span class="text-xl font-semibold text-black" x-show="sidebarOpen || isMobile">Admin Panel</span>
                             <span class="text-xl font-semibold text-white" x-show="!sidebarOpen && !isMobile">A</span>
                             <button @click="sidebarOpen = false" class="text-white hover:text-gray-300" x-show="isMobile" aria-label="Tutup sidebar">
                                 <i class="fas fa-times"></i>
@@ -70,10 +70,11 @@
                                 <span class="inline-block w-5 text-center flex-shrink-0"><i class="fas fa-tachometer-alt"></i></span>
                                 <span class="ml-3 truncate" x-show="sidebarOpen || isMobile">{{ __('Dashboard') }}</span>
                             </x-nav-link>
-                            <x-nav-link :href="route('admin.matapelajaran.index')" :active="request()->routeIs('admin.matapelajaran.*')" class="flex items-center px-4 py-2 rounded hover:bg-blue-800 text-gray-100 hover:text-white transition-colors">
-                                <span class="inline-block w-5 text-center flex-shrink-0"><i class="fas fa-book"></i></span>
-                                <span class="ml-3 truncate" x-show="sidebarOpen || isMobile">{{ __('Manajemen Mapel') }}</span>
-                            </x-nav-link>
+
+                            {{-- Pembatas: Data Master --}}
+                            <div class="px-4 py-2 text-xs text-blue-200 uppercase tracking-wider font-semibold mt-4 mb-2" x-show="sidebarOpen || isMobile">
+                                Data Master
+                            </div>
                             <x-nav-link :href="route('admin.guru.index')" :active="request()->routeIs('admin.guru.*')" class="flex items-center px-4 py-2 rounded hover:bg-blue-800 text-gray-100 hover:text-white transition-colors">
                                 <span class="inline-block w-5 text-center flex-shrink-0"><i class="fas fa-chalkboard-teacher"></i></span>
                                 <span class="ml-3 truncate" x-show="sidebarOpen || isMobile">{{ __('Manajemen Guru') }}</span>
@@ -82,6 +83,15 @@
                                 <span class="inline-block w-5 text-center flex-shrink-0"><i class="fas fa-users"></i></span>
                                 <span class="ml-3 truncate" x-show="sidebarOpen || isMobile">{{ __('Manajemen Siswa') }}</span>
                             </x-nav-link>
+                            <x-nav-link :href="route('admin.matapelajaran.index')" :active="request()->routeIs('admin.matapelajaran.*')" class="flex items-center px-4 py-2 rounded hover:bg-blue-800 text-gray-100 hover:text-white transition-colors">
+                                <span class="inline-block w-5 text-center flex-shrink-0"><i class="fas fa-book"></i></span>
+                                <span class="ml-3 truncate" x-show="sidebarOpen || isMobile">{{ __('Manajemen Mapel') }}</span>
+                            </x-nav-link>
+
+                            {{-- Pembatas: Pengelolaan --}}
+                            <div class="px-4 py-2 text-xs text-blue-200 uppercase tracking-wider font-semibold mt-4 mb-2" x-show="sidebarOpen || isMobile">
+                                Pengelolaan
+                            </div>
                             <x-nav-link :href="route('admin.kelas.index')" :active="request()->routeIs('admin.kelas.*')" class="flex items-center px-4 py-2 rounded hover:bg-blue-800 text-gray-100 hover:text-white transition-colors">
                                 <span class="inline-block w-5 text-center flex-shrink-0"><i class="fas fa-door-open"></i></span>
                                 <span class="ml-3 truncate" x-show="sidebarOpen || isMobile">{{ __('Manajemen Kelas') }}</span>

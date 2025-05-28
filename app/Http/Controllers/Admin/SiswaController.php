@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Siswa;
-use App\Models\Kelas;
+use App\Models\Kelas; // Pastikan ini di-import jika belum
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Requests\Admin\StoreSiswaRequest;
@@ -22,16 +22,16 @@ class SiswaController extends Controller
      */
     public function index(Request $request)
     {
-        // Ambil data siswa dengan pagination dan relasi kelas
-        // Tambahkan fitur search jika perlu
-        $search = $request->input('search');
+        $search = $request->input('search'); // Ambil nilai pencarian
+
         $siswas = Siswa::with('kelas') // Eager load relasi kelas
             ->when($search, function ($query, $search) {
                 return $query->where('nama_siswa', 'like', "%{$search}%")
                              ->orWhere('nis', 'like', "%{$search}%");
             })
             ->latest() // Urutkan berdasarkan terbaru
-            ->paginate(10); // Tampilkan 10 data per halaman
+            ->paginate(10) // Gunakan paginate() kembali
+            ->onEachSide(1); // Tambahkan ini untuk menampilkan 1 link di setiap sisi halaman aktif
 
         return view('admin.siswa.index', compact('siswas'));
     }

@@ -12,7 +12,7 @@
                     <form method="POST" action="{{ route('admin.matapelajaran.store') }}">
                         @csrf
                          <div class="mt-4">
-                            <x-input-label for="kode_mapel" :value="__('Kode Mata Pelajaran (Opsional)')" />
+                            <x-input-label for="kode_mapel" :value="__('Kode Mata Pelajaran')" />
                             <x-text-input id="kode_mapel" class="block mt-1 w-full" type="text" name="kode_mapel" :value="old('kode_mapel')" autofocus />
                             <x-input-error :messages="$errors->get('kode_mapel')" class="mt-2" />
                         </div>
