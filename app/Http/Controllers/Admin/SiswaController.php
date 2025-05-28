@@ -4,16 +4,18 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Siswa;
-use App\Models\Kelas; // Pastikan ini di-import jika belum
-use App\Models\User;
-use Illuminate\Http\Request;
+use App\Models\Kelas; // Import model Kelas
+use App\Models\User; // Import model User
 use App\Http\Requests\Admin\StoreSiswaRequest;
-use App\Http\Requests\Admin\UpdateSiswaRequest;
-use Illuminate\Support\Facades\Hash;
+use App\Http\Requests\Admin\UpdateSiswaRequest; // Import StoreSiswaRequest
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
-use Maatwebsite\Excel\Facades\Excel; // Tambahkan ini
-use App\Imports\SiswaImport;          // Tambahkan ini
-use Illuminate\Support\Facades\Log; // Tambahkan ini untuk logging error
+use Illuminate\Support\Facades\Hash; // Import Hash facade
+use App\Imports\SiswaImport;
+use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Log; // Import Log facade
 
 class SiswaController extends Controller
 {
@@ -22,18 +24,27 @@ class SiswaController extends Controller
      */
     public function index(Request $request)
     {
-        $search = $request->input('search'); // Ambil nilai pencarian
+        $search = $request->input('search');
+        $sort = $request->input('sort', 'nis');
+        $direction = $request->input('direction', 'asc');
+        $kelasIds = $request->input('kelas_ids', []); // Ambil array kelas_ids dari request
 
-        $siswas = Siswa::with('kelas') // Eager load relasi kelas
+        $siswas = Siswa::with('kelas')
             ->when($search, function ($query, $search) {
                 return $query->where('nama_siswa', 'like', "%{$search}%")
                              ->orWhere('nis', 'like', "%{$search}%");
             })
-            ->latest() // Urutkan berdasarkan terbaru
-            ->paginate(10) // Gunakan paginate() kembali
-            ->onEachSide(1); // Tambahkan ini untuk menampilkan 1 link di setiap sisi halaman aktif
+            ->when(!empty($kelasIds), function ($query) use ($kelasIds) {
+                // Filter berdasarkan kelas_id jika kelasIds tidak kosong
+                return $query->whereIn('kelas_id', $kelasIds);
+            })
+            ->orderBy($sort, $direction)
+            ->paginate(10)
+            ->withQueryString(); // Pertahankan query string (termasuk filter kelas)
 
-        return view('admin.siswa.index', compact('siswas'));
+        $kelas = Kelas::orderBy('nama_kelas')->get(); // Ambil semua data kelas
+
+        return view('admin.siswa.index', compact('siswas', 'kelas')); // Kirim data kelas ke view
     }
 
     /**

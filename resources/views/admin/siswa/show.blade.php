@@ -56,20 +56,18 @@
 
                      {{-- Tombol Aksi --}}
                      <div class="mt-6 flex justify-end space-x-2">
-                         <a href="{{ route('admin.siswa.edit', $siswa) }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-500 active:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                             Edit
-                         </a>
-                         <form action="{{ route('admin.siswa.destroy', $siswa) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data siswa ini? Menghapus siswa juga akan menghapus akun login dan data nilai terkait.');">
-                             @csrf
-                             @method('DELETE')
-                             <x-danger-button type="submit">
-                                 Hapus
-                             </x-danger-button>
-                         </form>
-                     </div>
-
-                </div>
-            </div>
+                        <a href="{{ route('admin.siswa.edit', $siswa) }}"
+                           class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-black uppercase tracking-widest hover:bg-indigo-500 active:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                            Edit
+                        </a>
+                        <form action="{{ route('admin.siswa.destroy', $siswa) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data siswa ini? Menghapus siswa juga akan menghapus akun login dan data nilai terkait.');">
+                            @csrf
+                            @method('DELETE')
+                            <x-danger-button type="submit">
+                                Hapus
+                            </x-danger-button>
+                        </form>
+                    </div>
 
             {{-- (Opsional) Kotak Rapor Nilai Singkat --}}
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
