@@ -23,17 +23,37 @@
                                 <td class="px-4 py-2 font-semibold text-gray-700" >Nama Mata Pelajaran</td>
                                 <td class="px-4 py-2">{{ $mataPelajaran->nama_mapel }}</td>
                             </tr>
-                            {{-- Tampilkan Guru Pengampu --}}
+                            {{-- Modifikasi Bagian Ini --}}
                             <tr>
-                                 <td class="px-4 py-2 font-semibold text-gray-700 align-top" >Guru Pengampu</td>
+                                 <td class="px-4 py-2 font-semibold text-gray-700 align-top" >Diajarkan di Kelas</td>
                                  <td class="px-4 py-2">
-                                      @forelse ($mataPelajaran->gurus as $guru)
-                                         <span class="inline-block bg-gray-100 text-gray-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">{{ $guru->nama_guru }}</span>
-                                     @empty
-                                         -
-                                     @endforelse
+                                      @if($mataPelajaran->kelas && $mataPelajaran->kelas->count() > 0)
+                                          <ul class="list-disc list-inside">
+                                              @foreach ($mataPelajaran->kelas as $kelas)
+                                                  <li>
+                                                      <a href="{{ route('admin.kelas.show', $kelas->id) }}" class="text-blue-600 hover:underline">
+                                                          {{ $kelas->nama_kelas }} ({{ $kelas->tahun_ajaran }})
+                                                      </a>
+                                                      @php
+                                                          $guruPengajarDiKelasIni = null;
+                                                          if ($kelas->pivot && $kelas->pivot->guru_id) {
+                                                              $guruPengajarDiKelasIni = \App\Models\Guru::find($kelas->pivot->guru_id);
+                                                          }
+                                                      @endphp
+                                                      @if($guruPengajarDiKelasIni)
+                                                          <span class="text-xs text-gray-500">- Diajar oleh: {{ $guruPengajarDiKelasIni->nama_guru }}</span>
+                                                      @else
+                                                          <span class="text-xs text-red-500">- Guru pengampu belum ditentukan</span>
+                                                      @endif
+                                                  </li>
+                                              @endforeach
+                                          </ul>
+                                     @else
+                                         <span class="text-gray-500">- Belum diajarkan di kelas manapun atau data jadwal belum diisi.</span>
+                                     @endif
                                  </td>
                             </tr>
+                            {{-- Akhir Modifikasi --}}
                          </tbody>
                      </table>
                      <div class="mt-6 flex justify-end space-x-2">
