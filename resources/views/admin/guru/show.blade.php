@@ -10,7 +10,12 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <div class="mb-4">
-                        <a href="{{ route('admin.guru.index') }}" class="text-blue-600 hover:text-blue-900">&larr; Kembali ke Daftar Guru</a>
+                        {{-- Tombol Kembali ke Daftar Guru --}}
+                        <a href="{{ route('admin.guru.index') }}"
+                           class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                            <i class="fas fa-arrow-left mr-2"></i> {{-- Tambahkan ikon panah kiri --}}
+                            {{ __('Kembali ke Daftar Guru') }}
+                        </a>
                     </div>
 
                     <table class="table-auto w-full mb-6">
@@ -45,7 +50,8 @@
                     </table>
 
                      <div class="mt-6 flex justify-end space-x-2">
-                         <a href="{{ route('admin.guru.edit', $guru) }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-black uppercase tracking-widest hover:bg-indigo-500 active:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                         {{-- Tombol Edit dengan teks putih --}}
+                         <a href="{{ route('admin.guru.edit', $guru) }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
                              Edit
                          </a>
                          <form action="{{ route('admin.guru.destroy', $guru) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data guru ini? Menghapus guru juga akan menghapus akun login terkait.');">
