@@ -15,6 +15,7 @@ use App\Http\Controllers\Guru\NilaiController as GuruNilaiController;
 use App\Http\Controllers\Guru\PengaturanController as GuruPengaturanController;
 use App\Http\Controllers\Siswa\DashboardController as SiswaDashboardController;
 use App\Http\Controllers\Siswa\NilaiController as SiswaNilaiController;
+use App\Http\Controllers\LaporanController; // Tambahkan ini di atas
 
 /*
 |--------------------------------------------------------------------------
@@ -31,7 +32,7 @@ use App\Http\Controllers\Siswa\NilaiController as SiswaNilaiController;
 Route::get('/', function () {
     // Arahkan ke login jika belum login, atau ke dashboard jika sudah
     if (Auth::check()) {
-         $user = Auth::user(); // <-- Perbaiki typo di sini
+         $user = Auth::user();
 
          // Tambahkan cek tipe User sebelum panggil hasRole
          if ($user instanceof User) {
@@ -45,10 +46,6 @@ Route::get('/', function () {
                 return redirect()->route('siswa.dashboard');
             }
          }
-         // Jika tipe user tidak valid atau tidak punya role yg cocok, fallback ke login
-         // Mungkin logout tidak perlu di sini, cukup redirect ke login jika tidak ada role cocok
-         // Auth::logout(); // Mungkin tidak perlu logout di sini
-         // return redirect('/login')->withErrors('Akses atau tipe pengguna tidak valid.');
     }
     // Jika tidak lolos Auth::check() atau tidak ada role cocok di atas
     return view('auth.login');
@@ -80,6 +77,17 @@ Route::middleware('auth')->group(function () {
          return redirect('/login')->withErrors('Akses tidak valid.');
     })->name('dashboard.redirect');
 
+    // Rute untuk cetak PDF
+    // Rute untuk Siswa atau Admin yang melihat rapor siswa
+    Route::get('/laporan/rapor-siswa/{siswa}/cetak', [LaporanController::class, 'cetakRaporSiswa'])
+        ->name('laporan.rapor.siswa.cetak')
+        ->middleware('can:view,siswa'); // Tambahkan policy jika perlu
+
+    // Rute untuk Guru yang mencetak rekap nilai kelas
+    Route::get('/laporan/rekap-nilai-kelas/{kelas}/cetak', [LaporanController::class, 'cetakRekapNilaiKelas'])
+        ->name('laporan.rekap.nilai.kelas.cetak')
+        ->middleware('role:guru'); // Hanya guru
+
 });
 
 // --- RUTE KHUSUS ADMIN ---
@@ -88,6 +96,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
     // Manajemen Data (Siswa, Guru, Kelas, Mapel)
     Route::resource('siswa', AdminSiswaController::class);
+    // Tambahkan rute untuk import siswa
+    Route::get('import', [AdminSiswaController::class, 'showImportForm'])->name('siswa.showImportForm');
+    Route::post('import', [AdminSiswaController::class, 'import'])->name('siswa.import');
+
     Route::resource('guru', AdminGuruController::class);
     Route::resource('kelas', AdminKelasController::class)->parameters([
         'kelas' => 'kelas'
@@ -116,7 +128,6 @@ Route::middleware(['auth', 'role:guru'])->prefix('guru')->name('guru.')->group(f
     Route::get('/nilai/input', [GuruNilaiController::class, 'showFormInputNilaiGabungan'])->name('nilai.input'); // Ini akan jadi halaman utama
 
     // Action untuk menyimpan bobot dan KKM (bisa jadi satu atau tetap dua)
-    Route::post('/nilai/simpan-bobot', [GuruNilaiController::class, 'simpanBobot'])->name('nilai.simpanBobot');
     Route::post('/nilai/simpan-bobot', [GuruNilaiController::class, 'simpanBobot'])->name('nilai.simpanBobot');
     Route::post('/nilai/simpan-kkm', [GuruNilaiController::class, 'simpanKkm'])->name('nilai.simpanKkm'); // Atau gabung ke simpanBobot jika logikanya sama
 

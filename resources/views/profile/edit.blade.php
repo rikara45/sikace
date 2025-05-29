@@ -18,7 +18,7 @@
                     <div class="max-w-xl">
                         <h3 class="text-lg font-medium text-gray-900">Informasi Akun Siswa</h3>
                         <p class="mt-1 text-sm text-gray-600 mb-6">
-                            Anda hanya dapat mengubah password Anda. Untuk perubahan data lain, silakan hubungi administrasi.
+                            Untuk perubahan data, silakan hubungi administrasi.
                         </p>
                         <div class="space-y-4">
                             <div>

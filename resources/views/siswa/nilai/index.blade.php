@@ -49,14 +49,6 @@
                                  @endif
                              </select>
                         </div>
-                         @if(isset($filterTahunAjaran) && $filterTahunAjaran && isset($filterSemester) && $filterSemester && isset($nilais) && $nilais->count() > 0)
-                         {{-- Pastikan route 'laporan.rapor.cetak' sudah ada atau sesuaikan --}}
-                         {{-- <a href="{{ route('laporan.rapor.cetak', ['siswa' => $siswa->id, 'tahun_ajaran' => $filterTahunAjaran, 'semester' => $filterSemester]) }}" target="_blank" --}}
-                         <a href="#"
-                            class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-500 active:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150 mb-1">
-                             Cetak Rapor (PDF)
-                         </a>
-                         @endif
                     </form>
                 </div>
             </div>
@@ -75,7 +67,7 @@
                                         <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border align-middle">Nilai Akhir</th>
                                         <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border align-middle">Predikat</th>
                                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider border align-middle">Guru Mapel</th>
-                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border align-middle">Aksi</th> {{-- Kolom baru untuk aksi --}}
+                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border align-middle">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
@@ -90,10 +82,8 @@
                                             <td class="px-4 py-2 whitespace-nowrap text-sm text-center border">{{ $nilai->predikat ?? '-' }}</td>
                                             <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-800 border">{{ $nilai->guru?->nama_guru ?? '-' }}</td>
                                             <td class="px-4 py-2 whitespace-nowrap text-sm text-center border">
-                                                {{-- Tombol/Link ke Halaman Detail Nilai per Mapel --}}
                                                 <a href="{{ route('siswa.nilai.mapel', [
                                                         'matapelajaran_id' => $nilai->mataPelajaran->id,
-                                                        // Kirim juga filter aktif agar halaman detail bisa default ke periode yang sama
                                                         'tahun_ajaran' => $filterTahunAjaran,
                                                         'semester' => $filterSemester
                                                     ]) }}"
@@ -106,6 +96,16 @@
                                 </tbody>
                             </table>
                          </div>
+                         
+                         {{-- Tombol Cetak PDF di pojok kanan bawah --}}
+                         @if(isset($filterTahunAjaran) && $filterTahunAjaran && isset($filterSemester) && $filterSemester)
+                         <div class="flex justify-end mt-4">
+                             <a href="{{ route('laporan.rapor.siswa.cetak', ['siswa' => $siswa->id, 'tahun_ajaran' => $filterTahunAjaran, 'semester' => $filterSemester]) }}" target="_blank"
+                                class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-500 active:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                    <i class="fas fa-file-pdf mr-2"></i>Cetak PDF
+                                </a>
+                         </div>
+                         @endif
                      @else
                          <p class="text-center text-gray-500 py-4">Belum ada data nilai untuk periode yang dipilih.</p>
                      @endif

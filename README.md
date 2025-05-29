@@ -1,61 +1,58 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+<h1>SIKACE</h1>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+<p>SIKACE adalah Sistem Informasi untuk manajemen data guru, siswa, mata pelajaran, kelas, nilai, dan pengaturan tahun ajaran.</p>
 
-## About Laravel
+<h2>Fitur Utama</h2>
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+<ul>
+    <li>Manajemen Data Guru</li>
+    <li>Manajemen Data Siswa</li>
+    <li>Manajemen Data Mata Pelajaran</li>
+    <li>Manajemen Data Kelas</li>
+    <li>Pengaturan Tahun Ajaran dan Semester</li>
+    <li>Input dan Pengaturan Nilai oleh Guru</li>
+    <li>Rekapitulasi Nilai Siswa</li>
+    <li>Dashboard untuk Admin, Guru, dan Siswa</li>
+    <li>Sistem Autentikasi Berbasis Peran (Admin, Guru, Siswa)</li>
+    <li>Notifikasi dan Pengingat (misalnya, nilai belum lengkap)</li>
+</ul>
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+<h2>Teknologi yang Digunakan</h2>
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+<ul>
+    <li>Laravel (Framework PHP)</li>
+    <li>Tailwind CSS (Framework CSS)</li>
+    <li>Alpine.js (Framework JavaScript Ringan)</li>
+    <li>Font Awesome (Ikon)</li>
+    <li>MySQL atau database lain yang didukung Laravel</li>
+</ul>
 
-## Learning Laravel
+<h2>Instalasi</h2>
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+<p>Instruksi langkah demi langkah untuk menginstal dan menjalankan proyek ini di lingkungan lokal Anda.</p>
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+<ol>
+    <li>Clone repositori ini: <code>git clone [URL_REPO_ANDA]</code></li>
+    <li>Masuk ke direktori proyek: <code>cd nama-folder-proyek</code></li>
+    <li>Instal dependensi Composer: <code>composer install</code></li>
+    <li>Instal dependensi Node.js: <code>npm install</code> atau <code>yarn install</code></li>
+    <li>Salin file environment: <code>cp .env.example .env</code></li>
+    <li>Konfigurasi database di file <code>.env</code>.</li>
+    <li>Jalankan migrasi database: <code>php artisan migrate</code></li>
+    <li>(Opsional) Jalankan seeder untuk data dummy: <code>php artisan db:seed</code></li>
+    <li>Jalankan build front-end: <code>npm run dev</code> atau <code>npm run build</code></li>
+    <li>Jalankan server lokal: <code>php artisan serve</code></li>
+    <li>Akses aplikasi di browser Anda (biasanya <code>http://127.0.0.1:8000</code>).</li>
+</ol>
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+<h2>Penggunaan</h2>
 
-## Laravel Sponsors
+<p>Jelaskan cara menggunakan aplikasi, peran pengguna, dan alur kerja dasar.</p>
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+<h2>Kontribusi</h2>
 
-### Premium Partners
+<p>Informasi tentang cara berkontribusi pada proyek ini (jika diizinkan).</p>
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development/)**
-- **[Active Logic](https://activelogic.com)**
+<h2>Lisensi</h2>
 
-## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+<p>Informasi lisensi proyek.</p>

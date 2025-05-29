@@ -10,8 +10,9 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <div class="mb-4">
-                        <a href="{{ route('admin.matapelajaran.create') }}" class="inline-flex items-center px-4 py-2 bg-green-600 ...">
-                            {{ __('Tambah Mata Pelajaran') }}
+                        <a href="{{ route('admin.matapelajaran.create') }}"
+                           class="inline-flex items-center px-4 py-2 bg-green-600 border border-green-700 rounded-md font-semibold text-xs text-black uppercase tracking-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                            <i class="fas fa-plus mr-2"></i> {{ __('Tambah Mata Pelajaran') }}
                         </a>
                     </div>
                      @include('layouts.partials.alert-messages')
@@ -38,12 +39,23 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $mapel->kode_mapel ?? '-' }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $mapel->nama_mapel }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <a href="{{ route('admin.matapelajaran.show', $mapel) }}" class="text-blue-600 hover:text-blue-900 mr-2">Lihat</a>
-                                            <a href="{{ route('admin.matapelajaran.edit', $mapel) }}" class="text-indigo-600 hover:text-indigo-900 mr-2">Edit</a>
-                                            <form action="{{ route('admin.matapelajaran.destroy', $mapel) }}" method="POST" class="inline" onsubmit="return confirm('Yakin hapus mata pelajaran ini?');">
-                                                @csrf @method('DELETE')
-                                                <button type="submit" class="text-red-600 hover:text-red-900">Hapus</button>
-                                            </form>
+                                            <div class="flex flex-wrap gap-2">
+                                                <a href="{{ route('admin.matapelajaran.show', $mapel) }}"
+                                                   class="inline-flex items-center px-3 py-1 border border-blue-600 text-blue-600 bg-white rounded-md text-xs font-semibold uppercase hover:bg-blue-600 hover:text-white transition-colors duration-150">
+                                                    <i class="fas fa-eye mr-1"></i> Lihat
+                                                </a>
+                                                <a href="{{ route('admin.matapelajaran.edit', $mapel) }}"
+                                                   class="inline-flex items-center px-3 py-1 border border-indigo-600 text-indigo-600 bg-white rounded-md text-xs font-semibold uppercase hover:bg-indigo-600 hover:text-white transition-colors duration-150">
+                                                    <i class="fas fa-edit mr-1"></i> Edit
+                                                </a>
+                                                <form action="{{ route('admin.matapelajaran.destroy', $mapel) }}" method="POST" class="inline" onsubmit="return confirm('Yakin hapus mata pelajaran ini?');">
+                                                    @csrf @method('DELETE')
+                                                    <button type="submit"
+                                                        class="inline-flex items-center px-3 py-1 border border-red-600 text-red-600 bg-white rounded-md text-xs font-semibold uppercase hover:bg-red-600 hover:text-white transition-colors duration-150">
+                                                        <i class="fas fa-trash mr-1"></i> Hapus
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </td>
                                     </tr>
                                 @empty

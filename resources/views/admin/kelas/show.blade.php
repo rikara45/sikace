@@ -10,25 +10,26 @@
             {{-- Detail Kelas --}}
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                  <div class="p-6 text-gray-900">
-                     <div class="flex justify-between items-start">
-                         <div>
-                            <a href="{{ route('admin.kelas.index') }}" class="text-blue-600 hover:text-blue-900 mb-4 inline-block">&larr; Kembali ke Daftar Kelas</a>
-                            <table class="table-auto w-full mb-6">
-                                 <tbody></tbody>
-                                    <tr> <td class="px-4 py-2 font-semibold text-gray-700" >Nama Kelas</td> <td class="px-4 py-2">{{ $kelas->nama_kelas }}</td> </tr>
-                                    <tr class="bg-gray-50"> <td class="px-4 py-2 font-semibold text-gray-700" >Tahun Ajaran</td> <td class="px-4 py-2">{{ $kelas->tahun_ajaran }}</td> </tr>
-                                    <tr> <td class="px-4 py-2 font-semibold text-gray-700" >Wali Kelas</td> <td class="px-4 py-2">{{ $kelas->waliKelas?->nama_guru ?? '-' }}</td> </tr>
-                                 </tbody>
-                             </table>
-                         </div>
-                         <div class="flex space-x-2 flex-shrink-0">
-                              <a href="{{ route('admin.kelas.edit', $kelas) }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 ..."> Edit </a>
-                              <form action="{{ route('admin.kelas.destroy', $kelas) }}" method="POST" class="inline" onsubmit="return confirm('Yakin hapus kelas ini?');">
-                                  @csrf @method('DELETE')
-                                  <x-danger-button type="submit"> Hapus </x-danger-button>
-                              </form>
-                         </div>
-                     </div>
+                     {{-- Link Kembali --}}
+                     <a href="{{ route('admin.kelas.index') }}" class="text-blue-600 hover:text-blue-900 mb-4 inline-block">&larr; Kembali ke Daftar Kelas</a>
+
+                     {{-- Detail Kelas (Tabel) --}}
+                     <table class="table-auto w-full mb-6">
+                          <tbody>
+                             <tr> <td class="px-4 py-2 font-semibold text-gray-700" >Nama Kelas</td> <td class="px-4 py-2">{{ $kelas->nama_kelas }}</td> </tr>
+                             <tr class="bg-gray-50"> <td class="px-4 py-2 font-semibold text-gray-700" >Tahun Ajaran</td> <td class="px-4 py-2">{{ $kelas->tahun_ajaran }}</td> </tr>
+                             <tr> <td class="px-4 py-2 font-semibold text-gray-700" >Wali Kelas</td> <td class="px-4 py-2">{{ $kelas->waliKelas?->nama_guru ?? '-' }}</td> </tr>
+                          </tbody>
+                      </table>
+
+                      {{-- Tombol Edit dan Hapus (Kanan Bawah) --}}
+                      <div class="flex justify-end space-x-2 mt-4"> {{-- Menggunakan flex justify-end untuk rata kanan --}}
+                           <a href="{{ route('admin.kelas.edit', $kelas) }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-black uppercase tracking-widest hover:bg-indigo-500 active:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">Edit</a>
+                           <form action="{{ route('admin.kelas.destroy', $kelas) }}" method="POST" class="inline" onsubmit="return confirm('Yakin hapus kelas ini?');">
+                               @csrf @method('DELETE')
+                               <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-500 active:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150">Hapus</button>
+                           </form>
+                      </div>
                  </div>
             </div>
 

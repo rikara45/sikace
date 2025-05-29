@@ -290,7 +290,7 @@
                 @csrf
 
                 <div>
-                    <label for="login_identifier">NIS (untuk Siswa) / Email (untuk Admin/Guru)</label>
+                    <label for="login_identifier">NIS (untuk Siswa) / Email (untuk Guru)</label>
                     <input id="login_identifier" type="text" name="login_identifier" value="{{ old('login_identifier') }}" required autofocus autocomplete="username">
                     {{-- Error bisa untuk login_identifier, email, atau nis --}}
                     @error('login_identifier') <span class="input-error-message">{{ $message }}</span> @enderror

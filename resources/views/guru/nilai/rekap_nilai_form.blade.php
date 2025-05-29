@@ -69,7 +69,7 @@
                     {{-- Bagian Tabel Nilai --}}
                     @if ($showNilaiTable && $kelasModel && $mapelModel)
                         <hr class="my-8">
-                        <div class="flex justify-between items-center">
+                        <div class="flex justify-between items-center mb-2">
                             <div>
                                 <h3 class="text-lg font-medium text-gray-900 mb-1">
                                     Rekap Nilai: {{ $mapelModel->nama_mapel }} - Kelas {{ $kelasModel->nama_kelas }}
@@ -78,8 +78,13 @@
                                     Tahun Ajaran: <span class="font-semibold">{{ $selectedTahunAjaran }}</span> | Semester: <span class="font-semibold">{{ $selectedSemester }}</span>
                                 </p>
                             </div>
-                            {{-- Tombol Export Excel (Akan ditambahkan nanti) --}}
-                            {{-- <a href="#" class="text-sm bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded">Export Excel</a> --}}
+                            <div>
+                                <a href="{{ route('laporan.rekap.nilai.kelas.cetak', ['kelas' => $kelasModel->id, 'tahun_ajaran' => $selectedTahunAjaran, 'semester' => $selectedSemester, 'mapel' => $selectedMapelId]) }}" target="_blank"
+                                   class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-500 active:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                    <i class="fas fa-file-pdf mr-2"></i>Cetak PDF
+                                </a>
+                                {{-- Tombol Export Excel jika ada --}}
+                            </div>
                         </div>
 
 

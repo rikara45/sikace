@@ -5,12 +5,13 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Guru;
 use App\Models\User;
-use App\Models\MataPelajaran; // <-- Import MataPelajaran
+use App\Models\MataPelajaran;
 use App\Http\Requests\Admin\StoreGuruRequest;
 use App\Http\Requests\Admin\UpdateGuruRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator; // <-- Tambahkan ini
 
 class GuruController extends Controller
 {
@@ -19,20 +20,46 @@ class GuruController extends Controller
      */
     public function index(Request $request)
     {
+        // 1. Ambil input search
         $search = $request->input('search');
-        $gurus = Guru::with('user') // Eager load relasi user jika ada
+
+        // 2. Validasi dan ambil input sort & direction
+        $validator = Validator::make($request->only('sort', 'direction'), [
+            'sort' => 'sometimes|in:nip,nama_guru', // Hanya izinkan kolom ini
+            'direction' => 'sometimes|in:asc,desc', // Hanya izinkan asc atau desc
+        ]);
+
+        // Jika validasi gagal atau input tidak ada, gunakan default
+        if ($validator->fails()) {
+            $sort = 'nama_guru'; // Default sort
+            $direction = 'asc';     // Default direction
+        } else {
+            $sort = $request->input('sort', 'nama_guru');
+            $direction = $request->input('direction', 'asc');
+        }
+
+
+        // 3. Bangun query
+        $gurus = Guru::with('user') // Eager load relasi user
             ->when($search, function ($query, $search) {
+                // Terapkan pencarian jika ada
                 return $query->where('nama_guru', 'like', "%{$search}%")
                              ->orWhere('nip', 'like', "%{$search}%")
-                             ->orWhereHas('user', function ($q) use ($search) { // Cari berdasarkan email user juga
+                             ->orWhereHas('user', function ($q) use ($search) {
                                  $q->where('email', 'like', "%{$search}%");
                              });
             })
-            ->latest()
-            ->paginate(10);
+            // 4. Terapkan sorting (Ganti ->latest())
+            ->orderBy($sort, $direction)
+            // 5. Lakukan pagination dan pertahankan query string
+            ->paginate(10)
+            ->withQueryString(); // <-- Tambahkan ini!
 
+        // 6. Kembalikan view dengan data
         return view('admin.guru.index', compact('gurus'));
     }
+
+    // ... (Metode lainnya tetap sama) ...
 
     /**
      * Show the form for creating a new resource.
@@ -117,10 +144,9 @@ class GuruController extends Controller
             $validated = $request->validated(); // Validasi data guru & user
             $userId = $guru->user_id;
 
-            // 1. Update atau Buat User (Logic sama seperti sebelumnya)
+            // 1. Update atau Buat User
             if (!empty($validated['email'])) {
-                // ... (logic update/create user seperti sebelumnya) ...
-                 if ($guru->user) { // Jika guru sudah punya akun user
+                if ($guru->user) { // Jika guru sudah punya akun user
                     $updateData = [
                         'name' => $validated['nama_guru'],
                         'email' => $validated['email'],
@@ -129,18 +155,20 @@ class GuruController extends Controller
                         $updateData['password'] = Hash::make($validated['password']);
                     }
                     $guru->user->update($updateData);
-                 } else { // Jika guru belum punya akun user, buat baru
+                } else { // Jika guru belum punya akun user, buat baru
                     $user = User::create([
                         'name' => $validated['nama_guru'],
                         'email' => $validated['email'],
-                        'password' => !empty($validated['password']) ? Hash::make($validated['password']) : Hash::make('password'),
+                        'password' => !empty($validated['password']) ? Hash::make($validated['password']) : Hash::make('password'), // Beri password default jika kosong
                         'email_verified_at' => now(),
                     ]);
                     $user->assignRole('guru');
                     $userId = $user->id;
-                 }
+                }
             } elseif ($guru->user && empty($validated['email'])) {
-                // Handle jika email dikosongkan? (Sama seperti sebelumnya)
+                 // Jika email dikosongkan (misalnya tidak diizinkan), Anda bisa menambahkan logic di sini
+                 // Untuk saat ini, kita anggap email tidak bisa dikosongkan jika sudah ada.
+                 // Atau jika bisa, mungkin user-nya perlu dihapus? Ini tergantung kebutuhan.
             }
 
             // 2. Update data Guru
@@ -150,10 +178,9 @@ class GuruController extends Controller
                 'user_id' => $userId,
             ]);
 
-            // 3. Sinkronisasi Mata Pelajaran yang Diampu <-- TAMBAHAN
-            // Ambil array ID mapel dari request (jika tidak ada, default ke array kosong)
+            // 3. Sinkronisasi Mata Pelajaran yang Diampu
             $mapelIds = $request->input('mapel_diampu', []);
-            $guru->mataPelajaransDiampu()->sync($mapelIds); // Sync akan otomatis menambah/menghapus relasi di pivot table
+            $guru->mataPelajaransDiampu()->sync($mapelIds);
 
             DB::commit();
 
@@ -176,16 +203,12 @@ class GuruController extends Controller
     {
         DB::beginTransaction();
         try {
-            // Hapus user terkait jika ada (opsional, tergantung kebijakan)
-            // Pertimbangkan apa yang terjadi jika guru ini adalah wali kelas atau pengampu mapel
-            // Mungkin perlu validasi tambahan atau set foreign key ke null
+            // Hapus user terkait jika ada
              if ($guru->user) {
-                 // Sebelum hapus user, pastikan role-nya hanya 'guru' atau handle jika punya role lain
-                 // $guru->user->syncRoles([]); // Hapus semua role jika perlu
                  $guru->user->delete();
              }
 
-             // Hapus relasi pivot (misal: mata pelajaran yang diampu)
+             // Hapus relasi pivot
              $guru->mataPelajaransDiampu()->detach();
 
              // Hapus data guru
@@ -194,17 +217,16 @@ class GuruController extends Controller
              DB::commit();
 
             return redirect()->route('admin.guru.index')
-                         ->with('success', 'Data guru berhasil dihapus.');
+                             ->with('success', 'Data guru berhasil dihapus.');
         } catch (\Exception $e) {
              DB::rollBack();
              // Log::error('Error delete guru: ' . $e->getMessage());
-             // Cek constraint violation error (misal: jika guru masih jadi wali kelas)
              if (str_contains($e->getMessage(), 'Integrity constraint violation')) {
                  return redirect()->route('admin.guru.index')
-                              ->with('error', 'Gagal menghapus guru. Pastikan guru tidak terdaftar sebagai wali kelas atau memiliki relasi data lain.');
+                                  ->with('error', 'Gagal menghapus guru. Pastikan guru tidak terdaftar sebagai wali kelas atau memiliki relasi data lain.');
              }
              return redirect()->route('admin.guru.index')
-                          ->with('error', 'Gagal menghapus data guru: ' . $e->getMessage());
+                              ->with('error', 'Gagal menghapus data guru: ' . $e->getMessage());
         }
     }
 }
