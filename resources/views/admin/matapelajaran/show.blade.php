@@ -25,33 +25,49 @@
                             </tr>
                             {{-- Modifikasi Bagian Ini --}}
                             <tr>
-                                 <td class="px-4 py-2 font-semibold text-gray-700 align-top" >Diajarkan di Kelas</td>
-                                 <td class="px-4 py-2">
-                                      @if($mataPelajaran->kelas && $mataPelajaran->kelas->count() > 0)
-                                          <ul class="list-disc list-inside">
-                                              @foreach ($mataPelajaran->kelas as $kelas)
-                                                  <li>
-                                                      <a href="{{ route('admin.kelas.show', $kelas->id) }}" class="text-blue-600 hover:underline">
-                                                          {{ $kelas->nama_kelas }} ({{ $kelas->tahun_ajaran }})
-                                                      </a>
-                                                      @php
-                                                          $guruPengajarDiKelasIni = null;
-                                                          if ($kelas->pivot && $kelas->pivot->guru_id) {
-                                                              $guruPengajarDiKelasIni = \App\Models\Guru::find($kelas->pivot->guru_id);
-                                                          }
-                                                      @endphp
-                                                      @if($guruPengajarDiKelasIni)
-                                                          <span class="text-xs text-gray-500">- Diajar oleh: {{ $guruPengajarDiKelasIni->nama_guru }}</span>
-                                                      @else
-                                                          <span class="text-xs text-red-500">- Guru pengampu belum ditentukan</span>
-                                                      @endif
-                                                  </li>
-                                              @endforeach
-                                          </ul>
-                                     @else
-                                         <span class="text-gray-500">- Belum diajarkan di kelas manapun atau data jadwal belum diisi.</span>
-                                     @endif
-                                 </td>
+                                <td class="px-4 py-2 font-semibold text-gray-700 align-top" colspan="2">Diajarkan di kelas & oleh:</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="px-4 py-2">
+                                    @if($mataPelajaran->kelas && $mataPelajaran->kelas->count() > 0)
+                                        <div class="overflow-x-auto border border-gray-200 rounded-md">
+                                            <table class="min-w-full divide-y divide-gray-200">
+                                                <thead class="bg-gray-100">
+                                                    <tr>
+                                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Nama Kelas (Tahun Ajaran)</th>
+                                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">Guru Pengampu Mapel Ini</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="bg-white divide-y divide-gray-200">
+                                                    @foreach ($mataPelajaran->kelas as $index => $kelas)
+                                                        @php
+                                                            $guruPengajarMapelIni = null;
+                                                            if ($kelas->pivot && $kelas->pivot->guru_id) {
+                                                                $guruPengajarMapelIni = \App\Models\Guru::find($kelas->pivot->guru_id);
+                                                            }
+                                                        @endphp
+                                                        <tr class="{{ $index % 2 == 0 ? 'bg-white' : 'bg-gray-50' }} hover:bg-gray-100">
+                                                            <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                                                                <a href="{{ route('admin.kelas.show', $kelas->id) }}" class="text-blue-600 hover:underline">
+                                                                    {{ $kelas->nama_kelas }} ({{ $kelas->tahun_ajaran }})
+                                                                </a>
+                                                            </td>
+                                                            <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-700">
+                                                                @if($guruPengajarMapelIni)
+                                                                    {{ $guruPengajarMapelIni->nama_guru }}
+                                                                @else
+                                                                    <span class="text-red-500">Belum Ditentukan</span>
+                                                                @endif
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    @else
+                                        <p class="text-gray-500 text-sm">- Belum diajarkan di kelas manapun atau data jadwal belum diisi.</p>
+                                    @endif
+                                </td>
                             </tr>
                             {{-- Akhir Modifikasi --}}
                          </tbody>
