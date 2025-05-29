@@ -33,6 +33,7 @@
                                 <p class="text-sm text-gray-500">Anda tidak mengampu mata pelajaran apapun di tahun ajaran ini.</p>
                             @endif
                         </div>
+                        <br>
                         <div>
                             <h4 class="text-md font-semibold text-gray-700 mb-2">Kelas Diajar (TA: {{ $tahunAjaranAktif ?? '-' }})</h4>
                             @if($kelasDiajar->count() > 0)
@@ -88,13 +89,10 @@
                             <ul class="list-disc list-inside text-sm space-y-1">
                                 @foreach($nilaiBelumLengkap as $item)
                                      <li>
-                                        <a href="{{ route('guru.nilai.input', ['filter_tahun_ajaran' => $tahunAjaranAktif, 'filter_semester' => $semesterAktif, 'filter_kelas_id' => $item->kelas_id_raw, 'filter_matapelajaran_id' => $item->mapel_id_raw]) }}" class="hover:underline">
-                                           Kelas {{ $item->nama_kelas }} - {{ $item->nama_mapel }} (Baru {{ $item->siswa_dinilai }} dari {{ $item->total_siswa }} siswa)
-                                        </a>
+                                        Kelas {{ $item->nama_kelas }} - {{ $item->nama_mapel }} (Baru {{ $item->siswa_dinilai }} dari {{ $item->total_siswa }} siswa). Tekan <a href="{{ route('guru.nilai.input', ['filter_tahun_ajaran' => $tahunAjaranAktif, 'filter_semester' => $semesterAktif, 'filter_kelas_id' => $item->kelas_id_raw, 'filter_matapelajaran_id' => $item->mapel_id_raw]) }}" class="hover:underline font-semibold text-blue-600">Disini</a> Untuk Melengkapi Nilai, .
                                     </li>
                                 @endforeach
                             </ul>
-                            <p class="text-xs mt-2">Silakan lengkapi nilai melalui menu <a href="{{ route('guru.nilai.input') }}" class="font-semibold hover:underline">Input & Pengaturan Nilai</a>.</p>
                         </div>
                     @endif
 
