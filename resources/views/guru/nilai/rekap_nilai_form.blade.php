@@ -13,7 +13,6 @@
 
                     @include('layouts.partials.alert-messages')
 
-                    {{-- Form Filter Konteks (SAMA SEPERTI SEBELUMNYA) --}}
                     <form method="GET" action="{{ route('guru.rekap-nilai.index') }}" id="filterRekapNilaiForm" class="space-y-4">
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
                             {{-- 1. Filter Tahun Ajaran --}}
@@ -63,10 +62,8 @@
                                 </select>
                             </div>
                         </div>
-                        {{-- Tombol "Tampilkan Nilai" bisa dihilangkan jika menggunakan onchange submit --}}
                     </form>
 
-                    {{-- Bagian Tabel Nilai --}}
                     @if ($showNilaiTable && $kelasModel && $mapelModel)
                         <hr class="my-8">
                         <div class="flex justify-between items-center mb-2">
@@ -83,10 +80,8 @@
                                    class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-500 active:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150">
                                     <i class="fas fa-file-pdf mr-2"></i>Cetak PDF
                                 </a>
-                                {{-- Tombol Export Excel jika ada --}}
                             </div>
                         </div>
-
 
                         @if($bobotAktif)
                             <div class="my-3 text-xs text-gray-600 p-3 bg-indigo-50 rounded-md border border-indigo-200">
@@ -106,19 +101,19 @@
                             </div>
                         @endif
 
-                        <div class="overflow-x-auto mt-4">
-                             <table class="min-w-full divide-y divide-gray-200 border">
+                        <div class="overflow-x-auto border border-gray-200 rounded-md">
+                             <table class="min-w-full divide-y divide-gray-200 border-collapse border border-gray-300">
                                 <thead class="bg-gray-100">
                                     <tr>
-                                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border">No</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider border">NIS</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider border">Nama Siswa</th>
-                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border">Rata2 Tugas</th>
-                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border">UTS</th>
-                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border">UAS</th>
-                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border">Nilai Akhir</th>
-                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border">Predikat</th>
-                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border">Detail Tugas</th>
+                                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">No</th>
+                                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">NIS</th>
+                                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">Nama Siswa</th>
+                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">Rata-rata Tugas</th>
+                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">UTS</th>
+                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">UAS</th>
+                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">Nilai Akhir</th>
+                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">Predikat</th>
+                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">Detail Tugas</th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
@@ -128,17 +123,17 @@
                                             $rataRataTugas = $nilai ? \App\Models\Nilai::calculateRataRataTugas($nilai->nilai_tugas) : null;
                                         @endphp
                                         <tr>
-                                            <td class="px-6 py-4 text-center border">{{ $index + 1 }}</td>
-                                            <td class="px-6 py-4 border">{{ $siswa->nis }}</td>
-                                            <td class="px-6 py-4 border">{{ $siswa->nama_siswa }}</td>
-                                            <td class="px-4 py-2 text-center border">{{ !is_null($rataRataTugas) ? number_format($rataRataTugas, 2) : '-' }}</td>
-                                            <td class="px-4 py-2 text-center border">{{ $nilai?->nilai_uts ?? '-' }}</td>
-                                            <td class="px-4 py-2 text-center border">{{ $nilai?->nilai_uas ?? '-' }}</td>
-                                            <td class="px-4 py-2 text-center border font-semibold">{{ !is_null($nilai?->nilai_akhir) ? number_format($nilai->nilai_akhir, 2) : '-' }}</td>
-                                            <td class="px-4 py-2 text-center border">{{ $nilai?->predikat ?? '-' }}</td>
-                                            <td class="px-4 py-2 text-center border">
+                                            <td class="px-6 py-4 text-center border border-gray-300">{{ $index + 1 }}</td>
+                                            <td class="px-6 py-4 border border-gray-300 text-center">{{ $siswa->nis }}</td>
+                                            <td class="px-6 py-4 border border-gray-300 text-center">{{ $siswa->nama_siswa }}</td>
+                                            <td class="px-4 py-2 text-center border border-gray-300">{{ !is_null($rataRataTugas) ? number_format($rataRataTugas, 2) : '-' }}</td>
+                                            <td class="px-4 py-2 text-center border border-gray-300">{{ $nilai?->nilai_uts ?? '-' }}</td>
+                                            <td class="px-4 py-2 text-center border border-gray-300">{{ $nilai?->nilai_uas ?? '-' }}</td>
+                                            <td class="px-4 py-2 text-center border border-gray-300 font-semibold">{{ !is_null($nilai?->nilai_akhir) ? number_format($nilai->nilai_akhir, 2) : '-' }}</td>
+                                            <td class="px-4 py-2 text-center border border-gray-300">{{ $nilai?->predikat ?? '-' }}</td>
+                                            <td class="px-4 py-2 text-center border border-gray-300">
                                                 @if($nilai && !empty($nilai->nilai_tugas) && is_array($nilai->nilai_tugas))
-                                                <button type="button" class="text-blue-500 text-xs show-detail-tugas"
+                                                <button type="button" class="text-blue-500 text-xs hover:underline show-detail-tugas"
                                                         data-tugas='@json($nilai->nilai_tugas)'
                                                         data-siswa-nama="{{ $siswa->nama_siswa }}">
                                                     Lihat Rincian
@@ -149,7 +144,7 @@
                                             </td>
                                         </tr>
                                     @empty
-                                         <tr><td colspan="9" class="px-6 py-4 text-center text-sm text-gray-500">Tidak ada siswa di kelas ini.</td></tr>
+                                         <tr><td colspan="9" class="px-6 py-4 text-center text-sm text-gray-500 border border-gray-300">Tidak ada siswa di kelas ini.</td></tr>
                                     @endforelse
                                 </tbody>
                             </table>
@@ -193,7 +188,6 @@
             document.getElementById('filterRekapNilaiForm').submit();
         }
 
-        // Javascript untuk modal detail tugas (SAMA SEPERTI SEBELUMNYA)
         document.addEventListener('DOMContentLoaded', function() {
             const modal = document.getElementById('detailTugasModal');
             if(modal) {
@@ -245,8 +239,6 @@
                         modal.style.display = 'none';
                     }
                 });
-            } else {
-                // console.warn("Peringatan: Elemen modal dengan ID 'detailTugasModal' tidak ditemukan di halaman ini.");
             }
         });
     </script>

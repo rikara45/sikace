@@ -1,4 +1,3 @@
-{{-- Mirip index Guru/Siswa, sesuaikan kolom tabel --}}
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
@@ -11,37 +10,37 @@
                 <div class="p-6 text-gray-900">
                     <div class="mb-4">
                         <a href="{{ route('admin.kelas.create') }}"
-                           class="inline-flex items-center px-4 py-2 bg-green-600 border border-green-700 rounded-md font-semibold text-xs text-black uppercase tracking-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                           class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150">
                             <i class="fas fa-plus mr-2"></i> {{ __('Tambah Kelas') }}
                         </a>
                     </div>
                     @include('layouts.partials.alert-messages')
-                     <form method="GET" action="{{ route('admin.kelas.index') }}" class="mb-4"> {{-- Form Search --}}
+                     <form method="GET" action="{{ route('admin.kelas.index') }}" class="mb-4">
                           <div class="flex">
                              <x-text-input id="search" class="block mt-1 w-full mr-2" type="text" name="search" :value="request('search')" placeholder="Cari Nama Kelas, Tahun Ajaran, Wali Kelas..." />
                              <x-primary-button> {{ __('Cari') }} </x-primary-button>
                          </div>
                      </form>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
+                    <div class="overflow-x-auto border border-gray-200 rounded-md">
+                        <table class="min-w-full divide-y divide-gray-200 border-collapse border border-gray-300">
+                            <thead class="bg-gray-100">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Kelas</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tahun Ajaran</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Wali Kelas</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">No</th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">Nama Kelas</th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">Tahun Ajaran</th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">Wali Kelas</th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @forelse ($kelasList as $index => $kelas)
                                     <tr>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $kelasList->firstItem() + $index }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $kelas->nama_kelas }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $kelas->tahun_ajaran }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $kelas->waliKelas?->nama_guru ?? '-' }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <div class="flex flex-wrap gap-2">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 border border-gray-300 text-center">{{ $kelasList->firstItem() + $index }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300 text-center">{{ $kelas->nama_kelas }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300 text-center">{{ $kelas->tahun_ajaran }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300 text-center">{{ $kelas->waliKelas?->nama_guru ?? '-' }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium border border-gray-300 text-center">
+                                            <div class="flex flex-wrap gap-2 justify-center">
                                                 <a href="{{ route('admin.kelas.show', $kelas) }}"
                                                    class="inline-flex items-center px-3 py-1 border border-blue-600 text-blue-600 bg-white rounded-md text-xs font-semibold uppercase hover:bg-blue-600 hover:text-white transition-colors duration-150">
                                                     <i class="fas fa-eye mr-1"></i> Lihat
@@ -61,7 +60,7 @@
                                         </td>
                                     </tr>
                                 @empty
-                                    <tr><td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">Data kelas tidak ditemukan.</td></tr>
+                                    <tr><td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500 border border-gray-300">Data kelas tidak ditemukan.</td></tr>
                                 @endforelse
                             </tbody>
                         </table>

@@ -28,35 +28,36 @@
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-semibold text-gray-800">
+                    <div class="flex justify-between items-center mb-4 flex-wrap">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-2 md:mb-0">
                             Ringkasan Nilai Terbaru ({{ $tahunAjaranAktif ?? '-' }} - Semester {{ $semesterAktif ?? '-' }})
                         </h3>
-                        <a href="{{ route('siswa.nilai.index', ['tahun_ajaran' => $tahunAjaranAktif, 'semester' => $semesterAktif]) }}" class="text-sm text-purple-600 hover:text-purple-900 hover:underline">
-                            Lihat Rapor Detail &rarr;
+                        <a href="{{ route('siswa.nilai.index', ['tahun_ajaran' => $tahunAjaranAktif, 'semester' => $semesterAktif]) }}" 
+                           class="inline-flex items-center px-4 py-2 bg-purple-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-purple-700 active:bg-purple-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                            Lihat Rapor Detail <i class="fas fa-arrow-right ml-2"></i>
                         </a>
                     </div>
 
                     @if($nilaiTerbaru->count() > 0)
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200 border">
-                                <thead class="bg-gray-50">
+                        <div class="overflow-x-auto border border-gray-200 rounded-md">
+                            <table class="min-w-full divide-y divide-gray-200 border-collapse border border-gray-300">
+                                <thead class="bg-gray-100">
                                     <tr>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mata Pelajaran</th>
-                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">KKM</th>
-                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Nilai Akhir</th>
-                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Predikat</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Guru</th>
+                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">Mata Pelajaran</th>
+                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">KKM</th>
+                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">Nilai Akhir</th>
+                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">Predikat</th>
+                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">Guru</th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200 text-sm">
                                     @foreach($nilaiTerbaru as $nilai)
                                         <tr>
-                                            <td class="px-4 py-2 whitespace-nowrap">{{ $nilai->mataPelajaran?->nama_mapel ?? 'N/A' }}</td>
-                                            <td class="px-4 py-2 whitespace-nowrap text-center">{{ $kkmMapelDashboard[$nilai->mata_pelajaran_id] ?? '-' }}</td>
-                                            <td class="px-4 py-2 whitespace-nowrap text-center font-semibold">{{ !is_null($nilai->nilai_akhir) ? number_format($nilai->nilai_akhir, 2) : '-' }}</td>
-                                            <td class="px-4 py-2 whitespace-nowrap text-center">{{ $nilai->predikat ?? '-' }}</td>
-                                            <td class="px-4 py-2 whitespace-nowrap">{{ $nilai->guru?->nama_guru ?? '-' }}</td>
+                                            <td class="px-4 py-2 whitespace-nowrap border border-gray-300 text-center">{{ $nilai->mataPelajaran?->nama_mapel ?? 'N/A' }}</td>
+                                            <td class="px-4 py-2 whitespace-nowrap text-center border border-gray-300">{{ $kkmMapelDashboard[$nilai->mata_pelajaran_id] ?? '-' }}</td>
+                                            <td class="px-4 py-2 whitespace-nowrap text-center font-semibold border border-gray-300">{{ !is_null($nilai->nilai_akhir) ? number_format($nilai->nilai_akhir, 2) : '-' }}</td>
+                                            <td class="px-4 py-2 whitespace-nowrap text-center border border-gray-300">{{ $nilai->predikat ?? '-' }}</td>
+                                            <td class="px-4 py-2 whitespace-nowrap border border-gray-300 text-center">{{ $nilai->guru?->nama_guru ?? '-' }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -73,17 +74,6 @@
                     @endif
                 </div>
             </div>
-
-            {{-- <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Informasi Akademik Lainnya</h3>
-                    <p class="text-sm text-gray-600">
-                        Pantau pengumuman dan informasi penting lainnya di sini.
-                    </p>
-                    {{-- Contoh: Jadwal Ujian, Tugas Mendatang, dll. --}}
-                {{-- </div>
-            </div> --}}
-
         </div>
     </div>
 </x-app-layout>
