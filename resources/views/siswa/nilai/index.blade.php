@@ -14,11 +14,11 @@
                      <h3 class="text-lg font-medium text-gray-900 mb-2">Informasi Siswa</h3>
                      <table class="table-auto w-full text-sm mb-6">
                           <tbody>
-                            <tr> <td class="px-2 py-1 font-semibold text-gray-700">Nama Siswa:</td> <td class="px-2 py-1">{{ $siswa->nama_siswa }}</td> </tr>
-                            <tr class="bg-gray-50"> <td class="px-2 py-1 font-semibold text-gray-700">NIS / NISN:</td> <td class="px-2 py-1">{{ $siswa->nis }} {{ $siswa->nisn ? '/ '.$siswa->nisn : '' }}</td> </tr>
+                            <tr> <td class="px-2 py-1 font-semibold text-gray-700">Nama Siswa</td> <td class="px-2 py-1">{{ $siswa->nama_siswa }}</td> </tr>
+                            <tr class="bg-gray-50"> <td class="px-2 py-1 font-semibold text-gray-700">NIS / NISN</td> <td class="px-2 py-1">{{ $siswa->nis }} {{ $siswa->nisn ? '/ '.$siswa->nisn : '' }}</td> </tr>
                             @if($kelasPeriode)
-                            <tr> <td class="px-2 py-1 font-semibold text-gray-700">Kelas:</td> <td class="px-2 py-1">{{ $kelasPeriode->nama_kelas }}</td> </tr>
-                            <tr class="bg-gray-50"> <td class="px-2 py-1 font-semibold text-gray-700">Wali Kelas:</td> <td class="px-2 py-1">{{ $waliKelasPeriode?->nama_guru ?? '-' }}</td> </tr>
+                            <tr> <td class="px-2 py-1 font-semibold text-gray-700">Kelas</td> <td class="px-2 py-1">{{ $kelasPeriode->nama_kelas }}</td> </tr>
+                            <tr class="bg-gray-50"> <td class="px-2 py-1 font-semibold text-gray-700">Wali Kelas</td> <td class="px-2 py-1">{{ $waliKelasPeriode?->nama_guru ?? '-' }}</td> </tr>
                             @endif
                           </tbody>
                      </table>
