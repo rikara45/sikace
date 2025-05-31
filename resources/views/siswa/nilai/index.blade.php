@@ -8,7 +8,7 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
 
-            {{-- Informasi Siswa & Filter (Sama seperti sebelumnya) --}}
+            {{-- Informasi Siswa & Filter --}}
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                      <h3 class="text-lg font-medium text-gray-900 mb-2">Informasi Siswa</h3>
@@ -58,30 +58,30 @@
                  <div class="p-6 text-gray-900">
                     <h3 class="text-lg font-semibold mb-4">Hasil Belajar Semester {{ $filterSemester ?? '-'}} Tahun Ajaran {{ $filterTahunAjaran ?? '-'}}</h3>
                      @if (isset($nilais) && $nilais->count() > 0)
-                         <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200 border">
+                         <div class="overflow-x-auto border border-gray-200 rounded-md">
+                            <table class="min-w-full divide-y divide-gray-200 border-collapse border border-gray-300">
                                 <thead class="bg-gray-100">
                                     <tr>
-                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border align-middle">No</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider border align-middle">Mata Pelajaran</th>
-                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border align-middle">Nilai Akhir</th>
-                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border align-middle">Predikat</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider border align-middle">Guru Mapel</th>
-                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border align-middle">Aksi</th>
+                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300 align-middle">No</th>
+                                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300 align-middle">Mata Pelajaran</th>
+                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300 align-middle">Nilai Akhir</th>
+                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300 align-middle">Predikat</th>
+                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300 align-middle">Guru Mapel</th>
+                                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300 align-middle">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     @foreach ($nilais as $index => $nilai)
                                         <tr>
-                                            <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-700 text-center border">{{ $index + 1 }}</td>
-                                            <td class="px-6 py-2 whitespace-nowrap text-sm text-gray-900 border">
+                                            <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-700 text-center border border-gray-300">{{ $index + 1 }}</td>
+                                            <td class="px-6 py-2 whitespace-nowrap text-sm text-gray-900 border border-gray-300 text-center">
                                                 {{ $nilai->mataPelajaran?->nama_mapel ?? 'Mapel Dihapus' }}
                                                 {{ $nilai->mataPelajaran?->kode_mapel ? '('.$nilai->mataPelajaran->kode_mapel.')' : ''}}
                                             </td>
-                                            <td class="px-4 py-2 whitespace-nowrap text-sm text-center border font-semibold">{{ !is_null($nilai->nilai_akhir) ? number_format($nilai->nilai_akhir, 2) : '-' }}</td>
-                                            <td class="px-4 py-2 whitespace-nowrap text-sm text-center border">{{ $nilai->predikat ?? '-' }}</td>
-                                            <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-800 border">{{ $nilai->guru?->nama_guru ?? '-' }}</td>
-                                            <td class="px-4 py-2 whitespace-nowrap text-sm text-center border">
+                                            <td class="px-4 py-2 whitespace-nowrap text-sm text-center border border-gray-300 font-semibold">{{ !is_null($nilai->nilai_akhir) ? number_format($nilai->nilai_akhir, 2) : '-' }}</td>
+                                            <td class="px-4 py-2 whitespace-nowrap text-sm text-center border border-gray-300">{{ $nilai->predikat ?? '-' }}</td>
+                                            <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-800 border border-gray-300 text-center">{{ $nilai->guru?->nama_guru ?? '-' }}</td>
+                                            <td class="px-4 py-2 whitespace-nowrap text-sm text-center border border-gray-300">
                                                 <a href="{{ route('siswa.nilai.mapel', [
                                                         'matapelajaran_id' => $nilai->mataPelajaran->id,
                                                         'tahun_ajaran' => $filterTahunAjaran,
@@ -97,7 +97,6 @@
                             </table>
                          </div>
                          
-                         {{-- Tombol Cetak PDF di pojok kanan bawah --}}
                          @if(isset($filterTahunAjaran) && $filterTahunAjaran && isset($filterSemester) && $filterSemester)
                          <div class="flex justify-end mt-4">
                              <a href="{{ route('laporan.rapor.siswa.cetak', ['siswa' => $siswa->id, 'tahun_ajaran' => $filterTahunAjaran, 'semester' => $filterSemester]) }}" target="_blank"

@@ -51,7 +51,8 @@
 
 <h2>Kontribusi</h2>
 
-<p>Informasi tentang cara berkontribusi pada proyek ini (jika diizinkan).</p>
+<p>Rio Eka Putra as Back-End</p>
+<p>Muhammad Habib as Front-End</p>
 
 <h2>Lisensi</h2>
 

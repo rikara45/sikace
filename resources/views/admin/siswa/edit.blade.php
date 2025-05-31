@@ -41,12 +41,10 @@
 
                         <div class="mt-4">
                             <x-input-label for="kelas_id" :value="__('Kelas')" />
-                            {{-- Pastikan variabel $kelas (jamak) berisi koleksi semua kelas dari controller --}}
                             <select id="kelas_id" name="kelas_id" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
                                 <option value="">-- Pilih Kelas --</option>
-                                @foreach ($kelas as $k) {{-- Loop variabel $kelas (jamak) --}}
+                                @foreach ($kelas as $k)
                                     <option value="{{ $k->id }}"
-                                        {{-- Bandingkan old input atau nilai siswa saat ini dengan ID kelas ($k->id) --}}
                                         @if (old('kelas_id', $siswa->kelas_id) == $k->id) selected @endif
                                     >
                                         {{ $k->nama_kelas }} ({{ $k->tahun_ajaran }})
@@ -67,28 +65,26 @@
                         </div>
 
                         <hr class="my-6">
-                        <h3 class="text-lg font-medium text-gray-900 mb-2">Akun Login Siswa (Opsional)</h3>
-                        <p class="text-sm text-gray-600 mb-4">Ubah email atau atur ulang password. Kosongkan password jika tidak ingin mengubahnya.</p>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">Akun Login Siswa</h3>
+                        <p class="text-sm text-gray-600 mb-4">
+                            Username login siswa adalah NIS. Password awal juga NIS.
+                            Admin dapat mengubah email (yang digunakan sistem secara internal) atau mereset password di sini.
+                        </p>
 
                         <div class="mt-4">
-                            <x-input-label for="email" :value="__('Email (Untuk Login)')" />
-                            {{-- Akses email dari relasi user jika ada --}}
-                            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email', $siswa->user?->email)" />
+                            <x-input-label for="email" :value="__('Email Internal (otomatis dibuat: NIS@internal.siswa)')" />
+                            <x-text-input id="email" class="block mt-1 w-full bg-gray-100" type="email" name="email" :value="old('email', $siswa->user?->email)" readonly disabled />
                             <x-input-error :messages="$errors->get('email')" class="mt-2" />
-                             @if($siswa->user)
-                                <p class="text-xs text-gray-500 mt-1">Mengosongkan email tidak akan menghapus akun login yang sudah ada.</p>
-                             @endif
+                             <p class="text-xs text-gray-500 mt-1">Email ini digunakan sistem dan tidak dapat diubah dari sini. Username login tetap NIS.</p>
                         </div>
 
                         <div class="mt-4">
-                            {{-- Input Password --}}
-                            <x-input-label for="password" :value="__('Password Baru (Kosongkan jika tidak diubah)')" />
+                            <x-input-label for="password" :value="__('Reset Password Baru (Kosongkan jika tidak ingin mereset)')" />
                             <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" autocomplete="new-password" />
                             <x-input-error :messages="$errors->get('password')" class="mt-2" />
                         </div>
 
                         <div class="mt-4">
-                            {{-- Input Konfirmasi Password --}}
                             <x-input-label for="password_confirmation" :value="__('Konfirmasi Password Baru')" />
                             <x-text-input id="password_confirmation" class="block mt-1 w-full" type="password" name="password_confirmation" autocomplete="new-password" />
                             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
@@ -96,7 +92,9 @@
 
                         {{-- Tombol Aksi --}}
                         <div class="flex items-center justify-end mt-6">
-                            <a href="{{ route('admin.siswa.index') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-black uppercase tracking-widest hover:bg-indigo-500 active:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150"> {{ __('Batal') }} </a>
+                            <a href="{{ route('admin.siswa.index') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150 mr-3">
+                                {{ __('Batal') }}
+                            </a>
 
                             <x-primary-button>
                                 {{ __('Update Data Siswa') }}
