@@ -117,6 +117,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/settings', [AdminSettingController::class, 'index'])->name('settings.index');
     Route::post('/settings', [AdminSettingController::class, 'update'])->name('settings.update');
 
+    // Rute untuk Fitur Kenaikan Kelas
+    Route::get('/kenaikan-kelas', [\App\Http\Controllers\Admin\KenaikanKelasController::class, 'showForm'])->name('kenaikan.form');
+    Route::post('/kenaikan-kelas/proses', [\App\Http\Controllers\Admin\KenaikanKelasController::class, 'processPromotion'])->name('kenaikan.proses');
+
      // Rute lain untuk admin...
 });
 

@@ -85,17 +85,23 @@
                                     <tr class="hover:bg-gray-50">
                                         <td class="px-4 py-3 font-medium text-gray-700 align-top border border-gray-300">Nilai Tugas</td>
                                         <td class="px-4 py-3 text-gray-900 border border-gray-300">
-                                            @if($nilaiDetail->nilai_tugas && is_array($nilaiDetail->nilai_tugas) && count(array_filter($nilaiDetail->nilai_tugas, 'is_numeric')) > 0)
+                                            @if($nilaiDetail && $nilaiDetail->nilai_tugas && is_array($nilaiDetail->nilai_tugas) && count(array_filter($nilaiDetail->nilai_tugas, 'is_numeric')) > 0)
                                                 <ul class="list-none space-y-1 mb-2">
                                                 @foreach($nilaiDetail->nilai_tugas as $idx => $tugas)
                                                     @if(is_numeric($tugas))
                                                     <li>Tugas {{ $idx + 1 }}: <span class="font-medium">{{ number_format((float)$tugas, 2) }}</span></li>
+                                                    @elseif($tugas === null && isset($totalAssignmentSlots) && $idx < $totalAssignmentSlots)
+                                                    <li>Tugas {{ $idx + 1 }}: <span class="font-medium text-gray-400">- (Tidak Dikerjakan) -</span></li>
                                                     @endif
                                                 @endforeach
                                                 </ul>
                                                 <p class="pt-2 border-t font-semibold">Rata-rata Tugas: <span class="font-bold">{{ !is_null($rataRataTugas) ? number_format($rataRataTugas, 2) : '-' }}</span></p>
                                             @else
-                                                -
+                                                @if($nilaiDetail && isset($totalAssignmentSlots) && $totalAssignmentSlots > 0)
+                                                    <p class="pt-2 border-t font-semibold">Rata-rata Tugas: <span class="font-bold">{{ !is_null($rataRataTugas) ? number_format($rataRataTugas, 2) : '-' }}</span></p>
+                                                @else
+                                                    -
+                                                @endif
                                             @endif
                                         </td>
                                     </tr>

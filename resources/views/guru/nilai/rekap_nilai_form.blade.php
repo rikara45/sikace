@@ -66,7 +66,7 @@
 
                     @if ($showNilaiTable && $kelasModel && $mapelModel)
                         <hr class="my-8">
-                        <div class="flex justify-between items-center mb-2">
+                        <div class="flex justify-between items-center mb-2 flex-wrap">
                             <div>
                                 <h3 class="text-lg font-medium text-gray-900 mb-1">
                                     Rekap Nilai: {{ $mapelModel->nama_mapel }} - Kelas {{ $kelasModel->nama_kelas }}
@@ -75,12 +75,14 @@
                                     Tahun Ajaran: <span class="font-semibold">{{ $selectedTahunAjaran }}</span> | Semester: <span class="font-semibold">{{ $selectedSemester }}</span>
                                 </p>
                             </div>
+                            @if($nilaiData->count() > 0) {{-- Hanya tampilkan tombol jika ada data nilai --}}
                             <div>
                                 <a href="{{ route('laporan.rekap.nilai.kelas.cetak', ['kelas' => $kelasModel->id, 'tahun_ajaran' => $selectedTahunAjaran, 'semester' => $selectedSemester, 'mapel' => $selectedMapelId]) }}" target="_blank"
                                    class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-500 active:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150">
                                     <i class="fas fa-file-pdf mr-2"></i>Cetak PDF
                                 </a>
                             </div>
+                            @endif
                         </div>
 
                         @if($bobotAktif)
@@ -94,6 +96,12 @@
                                    C &ge; <span class="font-medium">{{ $bobotAktif->batas_c }}</span>
                                    (D &lt; {{ $bobotAktif->kkm }})
                                 </p>
+                                {{-- Jika Anda menyimpan jumlah tugas di bobot, tampilkan di sini --}}
+                                {{-- @if(isset($bobotAktif->jumlah_tugas_dinilai))
+                                <p><strong>Jumlah Slot Tugas Dipertimbangkan:</strong> <span class="font-medium">{{ $totalAssignmentSlotsForContext ?? $bobotAktif->jumlah_tugas_dinilai }}</span></p>
+                                @else --}}
+                                <p><strong>Jumlah Slot Tugas Dipertimbangkan (dari data):</strong> <span class="font-medium">{{ $totalAssignmentSlotsForContext ?? 'N/A' }}</span></p>
+                                {{-- @endif --}}
                             </div>
                         @else
                             <div class="my-3 text-xs text-red-500 p-3 bg-red-50 rounded-md border border-red-200">
@@ -107,7 +115,7 @@
                                     <tr>
                                         <th class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">No</th>
                                         <th class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">NIS</th>
-                                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">Nama Siswa</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">Nama Siswa</th>
                                         <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">Rata-rata Tugas</th>
                                         <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">UTS</th>
                                         <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">UAS</th>
@@ -119,14 +127,24 @@
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     @forelse ($kelasModel->siswas ?? [] as $index => $siswa)
                                         @php
+                                            // $nilaiData adalah Collection Nilai yang di-keyBy siswa_id dari controller
                                             $nilai = $nilaiData->get($siswa->id);
-                                            $rataRataTugas = $nilai ? \App\Models\Nilai::calculateRataRataTugas($nilai->nilai_tugas) : null;
+                                            // $rataRataTugasPerSiswa adalah array [siswa_id => rata_rata] dari controller
+                                            $rataRataTugas = $rataRataTugasPerSiswa[$siswa->id] ?? null;
                                         @endphp
                                         <tr>
                                             <td class="px-6 py-4 text-center border border-gray-300">{{ $index + 1 }}</td>
                                             <td class="px-6 py-4 border border-gray-300 text-center">{{ $siswa->nis }}</td>
-                                            <td class="px-6 py-4 border border-gray-300 text-center">{{ $siswa->nama_siswa }}</td>
-                                            <td class="px-4 py-2 text-center border border-gray-300">{{ !is_null($rataRataTugas) ? number_format($rataRataTugas, 2) : '-' }}</td>
+                                            <td class="px-6 py-4 border border-gray-300 text-left">{{ $siswa->nama_siswa }}</td>
+                                            {{-- Menggunakan $rataRataTugas yang sudah dihitung di controller --}}
+                                            <td class="px-4 py-2 text-center border border-gray-300">
+                                                @php
+                                                    $rataRataTugas = $rataRataTugasPerSiswa[$siswa->id] ?? null;
+                                                    // Debug output (remove in production)
+                                                    // dump($nilaiData->get($siswa->id)?->nilai_tugas, $rataRataTugas);
+                                                @endphp
+                                                {{ !is_null($rataRataTugas) ? number_format($rataRataTugas, 2) : '-' }}
+                                            </td>
                                             <td class="px-4 py-2 text-center border border-gray-300">{{ $nilai?->nilai_uts ?? '-' }}</td>
                                             <td class="px-4 py-2 text-center border border-gray-300">{{ $nilai?->nilai_uas ?? '-' }}</td>
                                             <td class="px-4 py-2 text-center border border-gray-300 font-semibold">{{ !is_null($nilai?->nilai_akhir) ? number_format($nilai->nilai_akhir, 2) : '-' }}</td>
@@ -151,7 +169,7 @@
                          </div>
                     @elseif($selectedTahunAjaran && $selectedSemester && $selectedKelasId && $selectedMapelId)
                         <div class="mt-8 text-center text-gray-500">
-                            Tidak ada data nilai ditemukan untuk filter yang dipilih.
+                            Tidak ada data nilai ditemukan untuk filter yang dipilih atau kelas tidak memiliki siswa.
                         </div>
                     @else
                         <div class="mt-8 text-center text-gray-500">
@@ -184,9 +202,7 @@
 
     @push('scripts')
     <script>
-        function submitFormOnChange() {
-            document.getElementById('filterRekapNilaiForm').submit();
-        }
+        // Fungsi submitFormOnChange() tidak lagi diperlukan karena onchange sudah diatur di elemen select.
 
         document.addEventListener('DOMContentLoaded', function() {
             const modal = document.getElementById('detailTugasModal');
@@ -205,15 +221,31 @@
                             if(listDetailTugas) {
                                 listDetailTugas.innerHTML = '';
                                 if (tugasData && Array.isArray(tugasData) && tugasData.length > 0) {
+                                    // Ambil totalAssignmentSlotsForContext dari data yang dikirim controller jika perlu
+                                    // Untuk modal ini, kita hanya tampilkan yang ada nilainya.
+                                    let adaNilai = false;
                                     tugasData.forEach((nilai, index) => {
                                         const li = document.createElement('li');
                                         let nilaiTampil = '-';
                                         if (nilai !== null && !isNaN(parseFloat(nilai))) {
                                             nilaiTampil = parseFloat(nilai).toFixed(2);
+                                            adaNilai = true;
                                         }
-                                        li.textContent = `Tugas ${index + 1}: ${nilaiTampil}`;
-                                        listDetailTugas.appendChild(li);
+                                        // Hanya tampilkan jika ada nilai numerik atau jika ingin menampilkan semua slot (membutuhkan total slots)
+                                        if (nilai !== null && !isNaN(parseFloat(nilai))) {
+                                           li.textContent = `Tugas ${index + 1}: ${nilaiTampil}`;
+                                           listDetailTugas.appendChild(li);
+                                        } else if (nilai === null) { // Tampilkan sebagai "Tidak dikerjakan" jika null
+                                            li.textContent = `Tugas ${index + 1}: - (Tidak dikerjakan) -`;
+                                            listDetailTugas.appendChild(li);
+                                            adaNilai = true; // Anggap sebagai ada entri tugas
+                                        }
                                     });
+                                    if (!adaNilai) {
+                                        const li = document.createElement('li');
+                                        li.textContent = 'Tidak ada rincian nilai tugas yang valid.';
+                                        listDetailTugas.appendChild(li);
+                                    }
                                 } else {
                                     const li = document.createElement('li');
                                     li.textContent = 'Tidak ada rincian nilai tugas.';
@@ -223,7 +255,8 @@
                             modal.style.display = 'flex';
                         } catch (e) {
                             console.error("Error parsing tugas JSON for modal atau error lain:", e);
-                            alert('Gagal menampilkan detail tugas. Periksa console browser untuk detail.');
+                            if(listDetailTugas) listDetailTugas.innerHTML = '<li>Gagal memuat detail tugas.</li>';
+                            modal.style.display = 'flex'; // Tetap tampilkan modal dengan pesan error
                         }
                     });
                 });
