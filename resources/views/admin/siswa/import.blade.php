@@ -6,80 +6,23 @@
     </x-slot>
 
     <div class="py-12">
-        <div class="max-w-5xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+
+            {{-- Tombol Kembali ke Daftar Siswa dipindahkan ke sini dan diratakan kiri --}}
+            <div class="mb-6">
+                <a href="{{ route('admin.siswa.index') }}"
+                   class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    {{ __('Kembali ke Daftar Siswa') }}
+                </a>
+            </div>
+
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 
-                <!-- Form Import -->
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6 text-gray-900">
-
-                        <div class="mb-4">
-                            <a href="{{ route('admin.siswa.index') }}" class="text-blue-600 hover:text-blue-900">&larr; Kembali ke Daftar Siswa</a>
-                        </div>
-
-                        @include('layouts.partials.alert-messages')
-
-                        @if (session('import_validation_errors'))
-                            <div class="mb-4 p-4 bg-red-100 text-red-700 rounded">
-                                <p class="font-bold">Kesalahan Validasi Data CSV:</p>
-                                <ul class="list-disc list-inside text-sm">
-                                    @foreach(session('import_validation_errors') as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
-                         @if (session('import_errors'))
-                            <div class="mb-4 p-4 bg-yellow-100 border border-yellow-300 text-yellow-700 rounded">
-                                <p class="font-bold">Peringatan Selama Impor:</p>
-                                <div class="text-sm">{!! session('import_errors') !!}</div>
-                            </div>
-                        @endif
-
-                        <form method="POST" action="{{ route('admin.siswa.import') }}" enctype="multipart/form-data">
-                            @csrf
-
-                            <div class="mb-6">
-                                <a href="{{ asset('templates/TEMPLATE IMPORT SISWA.csv') }}" download
-                                   class="inline-flex items-center px-4 py-2 bg-white border border-blue-600 text-blue-600 rounded-md font-semibold text-xs uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-colors duration-150 shadow-sm">
-                                    <i class="fas fa-download mr-2"></i> Unduh Template CSV
-                                </a>
-                            </div>
-
-                            <div class="mt-4">
-                                <x-input-label for="kelas_id" :value="__('Pilih Kelas untuk Siswa yang Diimpor')" />
-                                <select id="kelas_id" name="kelas_id" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
-                                    <option value="">-- Pilih Kelas --</option>
-                                    @foreach ($kelasList as $kelas)
-                                        <option value="{{ $kelas->id }}" {{ old('kelas_id') == $kelas->id ? 'selected' : '' }}>
-                                            {{ $kelas->nama_kelas }} ({{ $kelas->tahun_ajaran }})
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <x-input-error :messages="$errors->get('kelas_id')" class="mt-2" />
-                            </div>
-
-                            <div class="mt-4">
-                                <x-input-label for="csv_file" :value="__('Pilih File CSV')" />
-                                <input id="csv_file" class="block mt-1 w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none file:bg-indigo-600 file:text-white file:text-sm file:font-semibold file:border-0 file:py-2 file:px-4 hover:file:bg-indigo-700" type="file" name="csv_file" required accept=".csv,.txt">
-                                <x-input-error :messages="$errors->get('csv_file')" class="mt-2" />
-                            </div>
-
-                            <div class="flex items-center justify-end mt-6">
-                                <x-primary-button>
-                                    {{ __('Impor Siswa') }}
-                                </x-primary-button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                <br
-
-                <!-- Panduan Format CSV -->
+                {{-- Panduan Format CSV (Sekarang di sisi kiri pada tampilan lg) --}}
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="guide-container">
-                        <div class="header bg-gradient-to-br from-indigo-600 to-purple-700 text-black p-6 text-center">
+                        <div class="header bg-gradient-to-br from-indigo-600 to-purple-700 text-white p-6 text-center rounded-t-lg">
                             <h1 class="text-xl font-semibold mb-2">Panduan Import Data Siswa</h1>
                             <p class="text-indigo-100 text-sm">Gunakan template CSV yang sudah disediakan</p>
                         </div>
@@ -175,6 +118,67 @@
                                 </ul>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6 text-gray-900">
+                        {{-- Tombol kembali sudah dipindahkan ke atas --}}
+
+                        @include('layouts.partials.alert-messages')
+
+                        @if (session('import_validation_errors'))
+                            <div class="mb-4 p-4 bg-red-100 text-red-700 rounded">
+                                <p class="font-bold">Kesalahan Validasi Data CSV:</p>
+                                <ul class="list-disc list-inside text-sm">
+                                    @foreach(session('import_validation_errors') as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+                         @if (session('import_errors'))
+                            <div class="mb-4 p-4 bg-yellow-100 border border-yellow-300 text-yellow-700 rounded">
+                                <p class="font-bold">Peringatan Selama Impor:</p>
+                                <div class="text-sm">{!! session('import_errors') !!}</div>
+                            </div>
+                        @endif
+
+                        <form method="POST" action="{{ route('admin.siswa.import') }}" enctype="multipart/form-data">
+                            @csrf
+
+                            <div class="mb-6">
+                                <a href="{{ asset('templates/TEMPLATE IMPORT SISWA.csv') }}" download
+                                   class="inline-flex items-center px-4 py-2 bg-white border border-blue-600 text-blue-600 rounded-md font-semibold text-xs uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-colors duration-150 shadow-sm">
+                                    <i class="fas fa-download mr-2"></i> Unduh Template CSV
+                                </a>
+                            </div>
+
+                            <div class="mt-4">
+                                <x-input-label for="kelas_id" :value="__('Pilih Kelas untuk Siswa yang Diimpor')" />
+                                <select id="kelas_id" name="kelas_id" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
+                                    <option value="">-- Pilih Kelas --</option>
+                                    @foreach ($kelasList as $kelas)
+                                        <option value="{{ $kelas->id }}" {{ old('kelas_id') == $kelas->id ? 'selected' : '' }}>
+                                            {{ $kelas->nama_kelas }} ({{ $kelas->tahun_ajaran }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <x-input-error :messages="$errors->get('kelas_id')" class="mt-2" />
+                            </div>
+
+                            <div class="mt-4">
+                                <x-input-label for="csv_file" :value="__('Pilih File CSV')" />
+                                <input id="csv_file" class="block mt-1 w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none file:bg-indigo-600 file:text-white file:text-sm file:font-semibold file:border-0 file:py-2 file:px-4 hover:file:bg-indigo-700" type="file" name="csv_file" required accept=".csv,.txt">
+                                <x-input-error :messages="$errors->get('csv_file')" class="mt-2" />
+                            </div>
+
+                            <div class="flex items-center justify-end mt-6">
+                                <x-primary-button>
+                                    {{ __('Impor Siswa') }}
+                                </x-primary-button>
+                            </div>
+                        </form>
                     </div>
                 </div>
 

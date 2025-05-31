@@ -67,7 +67,6 @@
                 </div>
             </div>
 
-            {{-- Bagian Pengaturan dan Input Nilai hanya tampil jika SEMUA filter sudah dipilih --}}
             @if (isset($showInputSection) && $showInputSection && isset($kelas) && isset($mapel))
                 {{-- 2. FORM PENGATURAN BOBOT --}}
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg" id="form-bobot-section">
@@ -81,7 +80,7 @@
                             </div>
                         @endif
 
-                        <form method="POST" action="{{ route('guru.nilai.simpanBobot') }}">
+                        <form method="POST" action="{{ route('guru.nilai.simpanBobot') }}" id="simpanBobotForm">
                             @csrf
                             <input type="hidden" name="kelas_id" value="{{ $selectedKelasId }}">
                             <input type="hidden" name="matapelajaran_id" value="{{ $selectedMapelId }}">
@@ -108,7 +107,7 @@
                                     <x-input-error :messages="$errors->get('bobot_uas')" class="mt-1 text-sm" />
                                 </div>
                                 <div class="sm:col-span-3 md:col-span-1">
-                                    <x-primary-button type="submit">
+                                    <x-primary-button type="submit" class="w-full md:w-auto">
                                         {{ __('Simpan Bobot') }}
                                     </x-primary-button>
                                 </div>
@@ -131,39 +130,35 @@
                             </div>
                         @endif
 
-                        <form method="POST" action="{{ route('guru.nilai.simpanKkm') }}">
+                        <form method="POST" action="{{ route('guru.nilai.simpanKkm') }}" id="simpanKkmForm">
                             @csrf
                             <input type="hidden" name="kelas_id" value="{{ $selectedKelasId }}">
                             <input type="hidden" name="matapelajaran_id" value="{{ $selectedMapelId }}">
                             <input type="hidden" name="tahun_ajaran" value="{{ $selectedTahunAjaran }}">
-                            {{-- Hidden input untuk membawa filter saat redirect --}}
                             <input type="hidden" name="filter_tahun_ajaran" value="{{ $selectedTahunAjaran }}">
                             <input type="hidden" name="filter_semester" value="{{ $selectedSemester }}">
                             <input type="hidden" name="filter_kelas_id" value="{{ $selectedKelasId }}">
                             <input type="hidden" name="filter_matapelajaran_id" value="{{ $selectedMapelId }}">
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-                                <div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                                <div class="md:col-span-2">
                                     <x-input-label for="kkm" :value="__('KKM (0-100)')" />
-                                    {{-- Asumsikan $bobot adalah objek BobotPenilaian yang dikirim controller --}}
-                                    <x-text-input id="kkm" type="number" name="kkm" :value="old('kkm', $bobot?->kkm ?? 70)" min="0" max="100" required class="block mt-1 w-full md:w-1/2 text-sm"/>
+                                    <x-text-input id="kkm" type="number" name="kkm" :value="old('kkm', $bobot?->kkm ?? 70)" min="0" max="100" required class="block mt-1 w-full text-sm"/>
                                 </div>
-                                <div>
-                                    <x-primary-button type="submit">
+                                <div class="md:col-span-1">
+                                    <x-primary-button type="submit" class="w-full md:w-auto">
                                         {{ __('Simpan KKM & Hitung Predikat') }}
                                     </x-primary-button>
                                 </div>
                             </div>
                         </form>
 
-                        {{-- Tampilkan rentang predikat yang tersimpan (hasil kalkulasi dari KKM terakhir) --}}
-                        @if($bobot && $bobot->kkm > 0) {{-- Tampilkan jika KKM sudah diset --}}
+                        @if($bobot && $bobot->kkm > 0)
                         <div class="mt-4 text-sm p-3 bg-blue-50 border border-blue-200 rounded-md">
                             <p class="font-semibold">Rentang Predikat yang Tersimpan Saat Ini (berdasarkan KKM: {{ $bobot->kkm }}):</p>
                             <p>D: Nilai &lt; {{ $bobot->kkm }}</p>
-                            {{-- Menampilkan rentang berdasarkan batas bawah yang disimpan --}}
-                            <p>C: {{ $bobot->batas_c }} - {{ $bobot->batas_b > $bobot->batas_c ? $bobot->batas_b - 1 : $bobot->batas_c }}</p>
-                            <p>B: {{ $bobot->batas_b }} - {{ $bobot->batas_a > $bobot->batas_b ? $bobot->batas_a - 1 : $bobot->batas_b }}</p>
+                            <p>C: {{ $bobot->batas_c }} - {{ $bobot->batas_b > $bobot->batas_c ? $bobot->batas_b - 1 : ($bobot->batas_a > $bobot->batas_c ? $bobot->batas_a - 1 : 100) }}</p>
+                            <p>B: {{ $bobot->batas_b }} - {{ $bobot->batas_a > $bobot->batas_b ? $bobot->batas_a - 1 : 100 }}</p>
                             <p>A: {{ $bobot->batas_a }} - 100</p>
                         </div>
                         @else
@@ -174,7 +169,7 @@
                     </div>
                 </div>
 
-                {{-- 4. FORM INPUT NILAI SISWA (SAMA SEPERTI SEBELUMNYA) --}}
+                {{-- 4. FORM INPUT NILAI SISWA --}}
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg" id="form-nilai-siswa-section">
                     <div class="p-6 text-gray-900">
                         @if (session('success_nilai')) <div class="mb-4 p-3 rounded bg-green-100 text-green-700 text-sm">{{ session('success_nilai') }}</div>@endif
@@ -183,7 +178,6 @@
                         
                         <form method="POST" action="{{ route('guru.nilai.store') }}">
                             @csrf
-                            {{-- Hidden inputs (sama seperti sebelumnya) --}}
                             <input type="hidden" name="kelas_id" value="{{ $selectedKelasId }}">
                             <input type="hidden" name="matapelajaran_id" value="{{ $selectedMapelId }}">
                             <input type="hidden" name="tahun_ajaran" value="{{ $selectedTahunAjaran }}">
@@ -193,28 +187,19 @@
                             <input type="hidden" name="filter_kelas_id" value="{{ $selectedKelasId }}">
                             <input type="hidden" name="filter_matapelajaran_id" value="{{ $selectedMapelId }}">
 
-                            {{-- DIV INI YANG HARUS PUNYA overflow-x-auto --}}
-                            <div class="overflow-x-auto border border-gray-200 rounded-md" style="max-width: 100vw;">
-                                <table class="min-w-full divide-y divide-gray-200" id="tabelInputNilai" style="table-layout: fixed;">
+                            <div class="overflow-x-auto border border-gray-200 rounded-md">
+                                <table class="min-w-full divide-y divide-gray-200 border-collapse border border-gray-300" id="tabelInputNilai" style="table-layout: fixed;">
                                     <thead class="bg-gray-100">
                                         <tr id="headerNilaiRow">
-                                            <th class="w-12 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-100 z-20 border-r">No</th>
-                                            <th class="w-24 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-12 bg-gray-100 z-20 border-r">NIS</th>
-                                            <th class="w-48 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-[calc(3rem+6rem)] bg-gray-100 z-20">Nama Siswa</th>
-                                            {{-- Kolom Tugas --}}
-                                            @for ($i = 1; $i <= ($maxNilaiTugasCount ?? 1); $i++)
-                                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap th-tugas" data-tugas-ke="{{ $i }}" style="min-width: 100px;">
-                                                Tugas {{ $i }}
-                                                @if ($i > 1)
-                                                    <button type="button" class="ml-1 text-red-500 hover:text-red-700 remove-tugas-column" title="Hapus Kolom Tugas {{ $i }}">&times;</button>
-                                                @endif
+                                            <th class="w-12 px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider sticky left-0 bg-gray-100 z-20 border border-gray-300">No</th>
+                                            <th class="w-24 px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider sticky left-12 bg-gray-100 z-20 border border-gray-300">NIS</th>
+                                            <th class="w-48 px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider sticky left-[calc(3rem+6rem)] bg-gray-100 z-20 border border-gray-300">Nama Siswa</th>
+                                            {{-- Kolom Tugas akan di-generate oleh JS --}}
+                                            <th class="px-2 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider th-add-tugas border border-gray-300" style="min-width: 50px;">
+                                                <button type="button" id="addTugasColumnBtn" class="p-1 bg-green-500 text-white rounded-full hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300" title="Tambah Kolom Tugas"><i class="fas fa-plus text-xs"></i></button>
                                             </th>
-                                            @endfor
-                                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider th-add-tugas" style="min-width: 50px;">
-                                                <button type="button" id="addTugasColumnBtn" class="text-blue-500 hover:text-blue-700 px-1" title="Tambah Kolom Tugas"><i class="fas fa-plus-circle"></i></button>
-                                            </th>
-                                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" style="min-width: 80px;">UTS</th>
-                                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider" style="min-width: 80px;">UAS</th>
+                                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300" style="min-width: 80px;">UTS</th>
+                                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300" style="min-width: 80px;">UAS</th>
                                         </tr>
                                     </thead>
                                     <tbody class="bg-white divide-y divide-gray-200">
@@ -225,27 +210,20 @@
                                                     $nilaiTugasSiswaArray = $nilaiSiswa?->nilai_tugas ?? [];
                                                 @endphp
                                                 <tr class="hover:bg-gray-50" data-siswa-id="{{ $siswa->id }}">
-                                                    <td class="w-12 px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center sticky left-0 bg-white z-10 border-r">{{ $index + 1 }}</td>
-                                                    <td class="w-24 px-4 py-4 whitespace-nowrap text-sm text-gray-900 sticky left-12 bg-white z-10 border-r">{{ $siswa->nis }}</td>
-                                                    <td class="w-48 px-6 py-4 whitespace-nowrap text-sm text-gray-900 sticky left-[calc(3rem+6rem)] bg-white z-10">{{ $siswa->nama_siswa }}</td>
+                                                    <td class="w-12 px-4 py-4 whitespace-nowrap text-sm text-gray-700 text-center sticky left-0 bg-white z-10 border border-gray-300">{{ $index + 1 }}</td>
+                                                    <td class="w-24 px-4 py-4 whitespace-nowrap text-sm text-gray-900 text-center sticky left-12 bg-white z-10 border border-gray-300">{{ $siswa->nis }}</td>
+                                                    <td class="w-48 px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-center sticky left-[calc(3rem+6rem)] bg-white z-10 border border-gray-300">{{ $siswa->nama_siswa }}</td>
                                                     
-                                                    @for ($i = 0; $i < ($maxNilaiTugasCount ?? 1); $i++)
-                                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center td-tugas" data-tugas-ke="{{ $i + 1 }}">
-                                                        <input type="number" step="0.01" min="0" max="100"
-                                                               name="grades[{{ $siswa->id }}][nilai_tugas][]"
-                                                               value="{{ old('grades.'.$siswa->id.'.nilai_tugas.'.$i, $nilaiTugasSiswaArray[$i] ?? null) }}"
-                                                               class="w-20 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm text-sm nilai-tugas-input">
-                                                    </td>
-                                                    @endfor
-                                                    <td data-placeholder-siswa-id="{{ $siswa->id }}" class="tugas-tambahan-placeholder"></td>
-                                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                                                    {{-- Sel Input Tugas akan di-generate oleh JS --}}
+                                                    <td data-placeholder-siswa-id="{{ $siswa->id }}" class="tugas-tambahan-placeholder border-r border-gray-300"></td>
+                                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center border border-gray-300">
                                                          <input type="number" step="0.01" min="0" max="100"
                                                                name="grades[{{ $siswa->id }}][nilai_uts]"
                                                                value="{{ old('grades.'.$siswa->id.'.nilai_uts', $nilaiSiswa?->nilai_uts) }}"
                                                                class="w-20 border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm text-sm">
                                                          <x-input-error :messages="$errors->get('grades.'.$siswa->id.'.nilai_uts')" class="mt-1 text-xs" />
                                                     </td>
-                                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500 text-center border border-gray-300">
                                                          <input type="number" step="0.01" min="0" max="100"
                                                                name="grades[{{ $siswa->id }}][nilai_uas]"
                                                                value="{{ old('grades.'.$siswa->id.'.nilai_uas', $nilaiSiswa?->nilai_uas) }}"
@@ -255,13 +233,15 @@
                                                 </tr>
                                             @endforeach
                                         @else
-                                            <tr><td colspan="{{ 6 + ($maxNilaiTugasCount ?? 1) }}" class="px-6 py-4 text-center text-sm text-gray-500">Siswa tidak ditemukan atau filter belum lengkap.</td></tr>
+                                            @php 
+                                                $colspanCount = 3 + 1 + 2; 
+                                            @endphp
+                                            <tr><td colspan="{{ $colspanCount }}" class="px-6 py-4 text-center text-sm text-gray-500 border border-gray-300">Siswa tidak ditemukan atau filter belum lengkap.</td></tr>
                                         @endif
                                     </tbody>
                                 </table>
                             </div>
 
-                            {{-- ... Tombol Simpan ... --}}
                             <div class="flex items-center justify-end mt-6">
                                 <x-primary-button type="submit">
                                     {{ __('Simpan Semua Nilai') }}
@@ -288,126 +268,145 @@
         }
 
         document.addEventListener('DOMContentLoaded', function () {
-            const addTugasBtn = document.getElementById('addTugasColumnBtn');
-            const tabelNilai = document.getElementById('tabelInputNilai');
-            // Ambil jumlah kolom tugas awal dari PHP, default ke 1 jika tidak ada
-            let tugasColumnCount = parseInt("{{ $maxNilaiTugasCount ?? 1 }}");
-
-            // Fungsi untuk menambahkan event listener ke tombol hapus kolom
-            function addRemoveColumnListener(button) {
-                button.addEventListener('click', function() {
-                    const tugasKe = parseInt(this.closest('th').dataset.tugasKe);
-                    if (tugasKe <= 1) return; // Jangan hapus kolom Tugas 1
-
-                    // Hapus header
-                    this.closest('th').remove();
-
-                    // Hapus sel di setiap baris body
-                    const bodyRows = tabelNilai.querySelectorAll('tbody tr');
-                    bodyRows.forEach(row => {
-                        const cellToRemove = row.querySelector(`td[data-tugas-ke="${tugasKe}"]`);
-                        if (cellToRemove) {
-                            cellToRemove.remove();
-                        }
-                    });
-                    // Tidak perlu decrement tugasColumnCount karena penomoran akan di-handle saat add
-                    // Namun, jika kita ingin label tetap urut, kita perlu re-label
-                    relabelTugasHeaders();
+            const simpanBobotForm = document.getElementById('simpanBobotForm');
+            if (simpanBobotForm) {
+                simpanBobotForm.addEventListener('submit', function(event) {
+                    if (!confirm("Jika Anda mengganti bobot nilai, Mohon untuk menyimpan ulang nilai.")) {
+                        event.preventDefault();
+                    }
                 });
             }
 
-            // Fungsi untuk me-relabel header kolom tugas
-            function relabelTugasHeaders() {
-                const headerCells = tabelNilai.querySelectorAll('thead tr#headerNilaiRow th.th-tugas');
-                headerCells.forEach((th, index) => {
-                    const currentTugasKe = index + 1;
-                    th.dataset.tugasKe = currentTugasKe;
-                    let textNode = Array.from(th.childNodes).find(node => node.nodeType === Node.TEXT_NODE);
-                    if(textNode) textNode.textContent = `Tugas ${currentTugasKe} `; // Spasi untuk tombol hapus
-
-                    const removeBtn = th.querySelector('.remove-tugas-column');
-                    if(currentTugasKe > 1 && !removeBtn){ // Tambah tombol hapus jika belum ada & bukan kolom pertama
-                        const newRemoveBtn = document.createElement('button');
-                        newRemoveBtn.type = 'button';
-                        newRemoveBtn.classList.add('ml-1', 'text-red-500', 'hover:text-red-700', 'remove-tugas-column');
-                        newRemoveBtn.title = `Hapus Kolom Tugas ${currentTugasKe}`;
-                        newRemoveBtn.innerHTML = '&times;';
-                        addRemoveColumnListener(newRemoveBtn);
-                        th.appendChild(newRemoveBtn);
-                    } else if (currentTugasKe <= 1 && removeBtn) { // Hapus tombol dari kolom pertama
-                        removeBtn.remove();
+            const simpanKkmForm = document.getElementById('simpanKkmForm');
+            if (simpanKkmForm) {
+                simpanKkmForm.addEventListener('submit', function(event) {
+                    if (!confirm("Jika Anda mengganti KKM, Mohon untuk menyimpan ulang nilai.")) {
+                        event.preventDefault();
                     }
                 });
-                // Update global counter berdasarkan jumlah header yg ada
-                tugasColumnCount = headerCells.length;
+            }
+
+            const addTugasBtn = document.getElementById('addTugasColumnBtn');
+            const tabelNilai = document.getElementById('tabelInputNilai');
+            const headerRow = tabelNilai.querySelector('thead tr#headerNilaiRow');
+            const thButtonPenambah = headerRow.querySelector('th.th-add-tugas'); // Target tombol tambah
+            let initialMaxTugasCount = parseInt("{{ $maxNilaiTugasCount ?? 0 }}");
+
+            function createAndAppendTugasColumn(tugasKe, nilaiTugasUntukSiswa = {}) {
+                const newHeader = document.createElement('th');
+                newHeader.classList.add('px-4', 'py-3', 'text-center', 'text-xs', 'font-medium', 'text-gray-600', 'uppercase', 'tracking-wider', 'whitespace-nowrap', 'th-tugas', 'border', 'border-gray-300');
+                newHeader.dataset.tugasKe = tugasKe;
+                newHeader.style.minWidth = '110px';
+                
+                const textNode = document.createTextNode(`Tugas ${tugasKe} `);
+                newHeader.appendChild(textNode);
+                headerRow.insertBefore(newHeader, thButtonPenambah);
+
+                const bodyRows = tabelNilai.querySelectorAll('tbody tr');
+                bodyRows.forEach(row => {
+                    const siswaId = row.dataset.siswaId;
+                    if (!siswaId || row.querySelectorAll('td').length <= 2) return;
+
+                    const newCell = document.createElement('td');
+                    newCell.classList.add('px-4', 'py-4', 'whitespace-nowrap', 'text-sm', 'text-gray-500', 'text-center', 'td-tugas', 'border', 'border-gray-300');
+                    newCell.dataset.tugasKe = tugasKe;
+                    
+                    const nilaiSiswaTugasIni = nilaiTugasUntukSiswa[siswaId] && nilaiTugasUntukSiswa[siswaId][tugasKe -1] !== undefined ? nilaiTugasUntukSiswa[siswaId][tugasKe -1] : null;
+
+                    const newInput = document.createElement('input');
+                    newInput.type = 'number';
+                    newInput.step = '0.01';
+                    newInput.min = '0';
+                    newInput.max = '100';
+                    newInput.name = `grades[${siswaId}][nilai_tugas][]`;
+                    newInput.value = nilaiSiswaTugasIni;
+                    newInput.classList.add('w-20', 'border-gray-300', 'focus:border-indigo-500', 'focus:ring-indigo-500', 'rounded-md', 'shadow-sm', 'text-sm', 'nilai-tugas-input');
+                    newCell.appendChild(newInput);
+
+                    const placeholderCell = row.querySelector('td.tugas-tambahan-placeholder');
+                     if (placeholderCell) {
+                         row.insertBefore(newCell, placeholderCell);
+                     } else { 
+                         const utsCell = Array.from(row.children).find(td => td.querySelector('input[name*="[nilai_uts]"]'));
+                         if (utsCell) row.insertBefore(newCell, utsCell);
+                     }
+                });
+            }
+            
+            function updateRemoveButtons() {
+                const allTugasHeaders = headerRow.querySelectorAll('th.th-tugas');
+                allTugasHeaders.forEach((th, index) => {
+                    let removeBtn = th.querySelector('.remove-tugas-column');
+                    if (removeBtn) removeBtn.remove();
+
+                    if (index === allTugasHeaders.length - 1 && allTugasHeaders.length > 1) {
+                        removeBtn = document.createElement('button');
+                        removeBtn.type = 'button';
+                        removeBtn.classList.add('ml-1', 'p-1', 'bg-red-500', 'text-white', 'rounded-full', 'hover:bg-red-600', 'focus:outline-none', 'focus:ring-2', 'focus:ring-red-300', 'text-xs', 'remove-tugas-column');
+                        const tugasKe = parseInt(th.dataset.tugasKe);
+                        removeBtn.title = `Hapus Kolom Tugas ${tugasKe}`;
+                        removeBtn.innerHTML = '<i class="fas fa-times text-xs" style="font-size: 0.6rem; line-height: 1;"></i>';
+                        
+                        removeBtn.addEventListener('click', function(event) {
+                            event.preventDefault();
+                            if (confirm("Yakin ingin menghapus kolom Tugas " + tugasKe + "? Semua nilai pada kolom ini akan hilang jika belum disimpan.")) {
+                                th.remove(); 
+                                const bodyRows = tabelNilai.querySelectorAll('tbody tr');
+                                bodyRows.forEach(row => {
+                                    const cellToRemove = row.querySelector(`td[data-tugas-ke="${tugasKe}"]`);
+                                    if (cellToRemove) cellToRemove.remove();
+                                });
+                                updateRemoveButtons(); 
+                            }
+                        });
+                        th.appendChild(removeBtn);
+                    }
+                });
+            }
+
+            if (tabelNilai) {
+                // Ekstrak nilai tugas awal dari data yang ada (jika ada)
+                let nilaiTugasAwalPerSiswa = {};
+                if (window.existingGradesData) {
+                    for (const siswaId in window.existingGradesData) {
+                        if (window.existingGradesData[siswaId] && window.existingGradesData[siswaId].nilai_tugas) {
+                            nilaiTugasAwalPerSiswa[siswaId] = window.existingGradesData[siswaId].nilai_tugas;
+                        }
+                    }
+                }
+
+                if (initialMaxTugasCount > 0) {
+                    for (let i = 1; i <= initialMaxTugasCount; i++) {
+                        createAndAppendTugasColumn(i, nilaiTugasAwalPerSiswa);
+                    }
+                } else { // Jika tidak ada data nilai tugas sama sekali, pastikan minimal 1 kolom
+                    createAndAppendTugasColumn(1, nilaiTugasAwalPerSiswa);
+                }
+                updateRemoveButtons();
             }
 
 
             if (addTugasBtn && tabelNilai) {
-                addTugasBtn.addEventListener('click', function() {
-                    tugasColumnCount++; // Ini akan jadi nomor untuk kolom baru
-                    const headerRow = tabelNilai.querySelector('thead tr#headerNilaiRow');
-                    const thButtonPenambah = headerRow.querySelector('th.th-add-tugas'); // Kolom tempat tombol +
-
-                    // Buat header baru
-                    const newHeader = document.createElement('th');
-                    newHeader.classList.add('px-4', 'py-3', 'text-center', 'text-xs', 'font-medium', 'text-gray-500', 'uppercase', 'tracking-wider', 'whitespace-nowrap', 'th-tugas');
-                    newHeader.dataset.tugasKe = tugasColumnCount; // Simpan nomor tugas
-                    newHeader.textContent = `Tugas ${tugasColumnCount} `; // Spasi untuk tombol hapus
-                    newHeader.style.minWidth = '100px';
-
-                    const removeHeaderButton = document.createElement('button');
-                    removeHeaderButton.type = 'button';
-                    removeHeaderButton.classList.add('ml-1', 'text-red-500', 'hover:text-red-700', 'remove-tugas-column');
-                    removeHeaderButton.title = `Hapus Kolom Tugas ${tugasColumnCount}`;
-                    removeHeaderButton.innerHTML = '&times;';
-                    addRemoveColumnListener(removeHeaderButton); // Tambahkan event listener ke tombol baru
-                    newHeader.appendChild(removeHeaderButton);
-
-                    // Sisipkan header baru sebelum kolom tombol "+"
-                    headerRow.insertBefore(newHeader, thButtonPenambah);
-
-                    // Tambah sel input baru untuk setiap baris siswa
-                    const bodyRows = tabelNilai.querySelectorAll('tbody tr');
-                    bodyRows.forEach(row => {
-                        // Dapatkan siswaId dari atribut data-siswa-id di <tr>
-                        const siswaId = row.dataset.siswaId;
-                        if (!siswaId) return; // Lewati jika baris tidak punya siswaId (misal baris tidak punya siswaId (misal baris "Tidak ada siswa"))
-
-                        if (row.querySelectorAll('td').length > 2) { // Hanya tambah jika bukan baris "Tidak ada siswa"
-                            const newCell = document.createElement('td');
-                            newCell.classList.add('px-4', 'py-4', 'whitespace-nowrap', 'text-sm', 'text-gray-500', 'text-center', 'td-tugas');
-                            newCell.dataset.tugasKe = tugasColumnCount; // Simpan nomor tugas
-
-                            const newInput = document.createElement('input');
-                            newInput.type = 'number';
-                            newInput.step = '0.01';
-                            newInput.min = '0';
-                            newInput.max = '100';
-                            newInput.name = `grades[${siswaId}][nilai_tugas][]`;
-                            newInput.classList.add('w-20', 'border-gray-300', 'focus:border-indigo-500', 'focus:ring-indigo-500', 'rounded-md', 'shadow-sm', 'text-sm', 'nilai-tugas-input');
-                            newInput.placeholder = `Tgs ${tugasColumnCount}`;
-                            newCell.appendChild(newInput);
-
-                            // Sisipkan sel baru sebelum sel placeholder/UTS
-                            const placeholderCell = row.querySelector('td.tugas-tambahan-placeholder');
-                            const utsCell = Array.from(row.children).find(td => td.querySelector('input[name*="[nilai_uts]"]'));
-
-                            if (placeholderCell) {
-                                row.insertBefore(newCell, placeholderCell); // Sisipkan sebelum placeholder
-                            } else if (utsCell) {
-                                row.insertBefore(newCell, utsCell); // Fallback sisipkan sebelum UTS
-                            }
-                        }
-                    });
-                    relabelTugasHeaders(); // Panggil untuk memastikan penomoran header benar
+                addTugasBtn.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    const currentTugasHeaders = headerRow.querySelectorAll('th.th-tugas');
+                    const nextTugasKe = currentTugasHeaders.length + 1;
+                    createAndAppendTugasColumn(nextTugasKe); // Tidak perlu passing nilaiTugasAwalPerSiswa karena ini kolom baru
+                    updateRemoveButtons();
                 });
             }
-
-            // Inisialisasi tombol hapus yang sudah ada dari server
-            tabelNilai.querySelectorAll('thead th.th-tugas .remove-tugas-column').forEach(addRemoveColumnListener);
-            relabelTugasHeaders(); // Panggil untuk inisialisasi label dan tombol hapus
         });
     </script>
+    @if(isset($existingGrades))
+    <script>
+        window.existingGradesData = @json($existingGrades->mapWithKeys(function ($item, $key) {
+            return [$key => ['nilai_tugas' => $item->nilai_tugas ?? []]];
+        }));
+    </script>
+    @else
+    <script>
+        window.existingGradesData = {};
+    </script>
+    @endif
     @endpush
 </x-app-layout>

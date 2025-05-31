@@ -49,8 +49,15 @@ class MataPelajaranController extends Controller
     // Ingat parameter di route: 'matapelajaran' -> model binding jadi $mataPelajaran
     public function show(MataPelajaran $mataPelajaran)
     {
-         // Load relasi guru atau kelas jika perlu
-         $mataPelajaran->load('gurus'); // Contoh load guru yg mengampu mapel ini
+         // Load relasi kelas tempat mapel ini diajarkan,
+         // dan juga guru yang mengajar mapel ini di kelas tersebut melalui pivot
+         $mataPelajaran->load([
+             'kelas' => function ($query) {
+                 $query->with('waliKelas')->orderBy('tahun_ajaran', 'desc')->orderBy('nama_kelas', 'asc');
+             },
+             'kelas.gurusPengajar'
+         ]);
+
         return view('admin.matapelajaran.show', compact('mataPelajaran'));
     }
 

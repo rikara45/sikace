@@ -14,7 +14,9 @@
                 <div class="p-6 text-gray-900">
                     {{-- Tombol Kembali --}}
                     <div class="mb-4">
-                        <a href="{{ route('admin.siswa.index') }}" class="text-blue-600 hover:text-blue-900">&larr; Kembali ke Daftar Siswa</a>
+                        <a href="{{ route('admin.siswa.index') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                             <i class="fas fa-arrow-left mr-2"></i> {{ __('Kembali ke Daftar Siswa') }}
+                        </a>
                     </div>
 
                     {{-- Tabel Informasi Siswa --}}
@@ -34,7 +36,6 @@
                             </tr>
                              <tr class="bg-gray-50">
                                 <td class="px-4 py-2 font-semibold text-gray-700" >Kelas</td>
-                                {{-- Akses relasi kelas, gunakan null safe operator (?) dan null coalescing (??) --}}
                                 <td class="px-4 py-2">{{ $siswa->kelas?->nama_kelas ?? 'Belum ada kelas' }} ({{ $siswa->kelas?->tahun_ajaran ?? '-' }})</td>
                             </tr>
                              <tr>
@@ -47,8 +48,7 @@
                                 </td>
                             </tr>
                              <tr class="bg-gray-50">
-                                <td class="px-4 py-2 font-semibold text-gray-700" >Email Login</td>
-                                {{-- Akses relasi user, gunakan null safe operator (?) dan null coalescing (??) --}}
+                                <td class="px-4 py-2 font-semibold text-gray-700" >Email Login (Internal)</td>
                                 <td class="px-4 py-2">{{ $siswa->user?->email ?? '-' }}</td>
                             </tr>
                         </tbody>
@@ -57,7 +57,7 @@
                      {{-- Tombol Aksi --}}
                      <div class="mt-6 flex justify-end space-x-2">
                         <a href="{{ route('admin.siswa.edit', $siswa) }}"
-                           class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-black uppercase tracking-widest hover:bg-indigo-500 active:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                           class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
                             Edit
                         </a>
                         <form action="{{ route('admin.siswa.destroy', $siswa) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data siswa ini? Menghapus siswa juga akan menghapus akun login dan data nilai terkait.');">
@@ -68,6 +68,8 @@
                             </x-danger-button>
                         </form>
                     </div>
+                </div>
+            </div>
 
             {{-- (Opsional) Kotak Rapor Nilai Singkat --}}
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
@@ -75,7 +77,6 @@
                     <h3 class="text-lg font-semibold mb-4">Ringkasan Nilai Terakhir</h3>
                     @if($siswa->nilais->count() > 0)
                         @php
-                            // Ambil data nilai terakhir (berdasarkan tahun ajaran & semester terbaru)
                             $grouped = $siswa->nilais
                                 ->sortByDesc('tahun_ajaran')
                                 ->sortByDesc('semester')
@@ -85,7 +86,11 @@
 
                             $latestKey = $grouped->keys()->first();
                             $latestNilaiGroup = $latestKey ? $grouped[$latestKey] : null;
-                            [$latestTahun, $latestSemester] = $latestKey ? explode('||', $latestKey) : [null, null];
+                            if ($latestKey) {
+                                list($latestTahun, $latestSemester) = explode('||', $latestKey);
+                            } else {
+                                $latestTahun = null; $latestSemester = null;
+                            }
                         @endphp
 
                         @if($latestNilaiGroup)
