@@ -16,11 +16,11 @@ class SettingController extends Controller
 
         // Opsi untuk dropdown Tahun Ajaran (bisa dibuat lebih dinamis)
         // Contoh sederhana, Anda bisa mengambilnya dari tabel 'kelas' atau tabel 'tahun_ajarans' terpisah jika ada
+        $tahunAwal = 2024; // atau tahun ajaran paling awal di sistem Anda
+        $tahunAkhir = date('Y') + 5; // misal, 2 tahun ke depan dari sekarang
         $availableTahunAjaran = [];
-        $startYear = 2024; // Tahun awal
-        for ($i = 0; $i < 5; $i++) { // Generate 5 tahun ke depan
-            $nextYear = $startYear + 1 + $i;
-            $availableTahunAjaran[] = ($startYear + $i) . '/' . $nextYear;
+        for ($th = $tahunAwal; $th <= $tahunAkhir; $th++) {
+            $availableTahunAjaran[] = $th . '/' . ($th + 1);
         }
 
         $availableSemester = [1, 2];

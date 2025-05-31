@@ -63,6 +63,16 @@ class LaporanController extends Controller
             }
         }
 
+        // Hitung total slot tugas per mapel untuk siswa ini
+        $totalAssignmentSlotsMapel = [];
+        foreach ($nilais as $nilai) {
+            $mapelId = $nilai->mata_pelajaran_id;
+            $totalAssignmentSlotsMapel[$mapelId] = max(
+                $totalAssignmentSlotsMapel[$mapelId] ?? 0,
+                is_array($nilai->nilai_tugas) ? count($nilai->nilai_tugas) : 0
+            );
+        }
+
 
         // Data untuk view PDF
         $data = [
@@ -75,7 +85,8 @@ class LaporanController extends Controller
             'kkmMapel' => $kkmMapel, // Kirim KKM ke view
             'namaSekolah' => Setting::getValue('nama_sekolah', 'Nama Sekolah Default'), // Contoh ambil dari settings
             'alamatSekolah' => Setting::getValue('alamat_sekolah', 'Alamat Sekolah Default'),
-            // Tambahkan data lain yang diperlukan seperti nama kepala sekolah, dll.
+            // Tambahkan ini:
+            'totalAssignmentSlotsMapel' => $totalAssignmentSlotsMapel,
         ];
 
         // Load view dan generate PDF
@@ -101,7 +112,7 @@ class LaporanController extends Controller
 
         $filterTahunAjaran = $request->input('tahun_ajaran', Setting::getValue('tahun_ajaran_aktif'));
         $filterSemester = $request->input('semester', Setting::getValue('semester_aktif'));
-        $filterMapelId = $request->input('mapel'); // Ambil dari query parameter
+        $filterMapelId = $request->input('mapel');
 
         if (!$filterMapelId) {
             return redirect()->back()->with('error', 'Mata pelajaran harus dipilih untuk mencetak rekap.');
@@ -126,6 +137,34 @@ class LaporanController extends Controller
             ->where('tahun_ajaran', $filterTahunAjaran)
             ->first();
 
+        // --- Tambahan: Hitung total slot tugas ---
+        $totalAssignmentSlotsForContext = 0;
+        $allNilaiTugasInContext = Nilai::where('kelas_id', $kelas->id)
+            ->where('mata_pelajaran_id', $mapel->id)
+            ->where('tahun_ajaran', $filterTahunAjaran)
+            ->where('semester', $filterSemester)
+            ->pluck('nilai_tugas');
+
+        foreach ($allNilaiTugasInContext as $tugasArraySiswaLain) {
+            if (is_array($tugasArraySiswaLain)) {
+                $totalAssignmentSlotsForContext = max($totalAssignmentSlotsForContext, count($tugasArraySiswaLain));
+            }
+        }
+        if ($totalAssignmentSlotsForContext == 0 && $bobotAktif && $bobotAktif->bobot_tugas > 0) {
+            $totalAssignmentSlotsForContext = 1;
+        }
+
+        // --- Tambahan: Hitung rata-rata tugas per siswa ---
+        $rataRataTugasPerSiswa = [];
+        foreach ($siswaList as $siswa) {
+            $nilaiSiswa = $nilaiData->get($siswa->id);
+            $currentStudentNilaiTugasArray = $nilaiSiswa?->nilai_tugas ?? [];
+            $rataRataTugasPerSiswa[$siswa->id] = \App\Models\Nilai::calculateRataRataTugas(
+                $currentStudentNilaiTugasArray,
+                $totalAssignmentSlotsForContext
+            );
+        }
+
         $data = [
             'kelas' => $kelas,
             'mapel' => $mapel,
@@ -136,6 +175,9 @@ class LaporanController extends Controller
             'semester' => $filterSemester,
             'guru' => $guru,
             'namaSekolah' => Setting::getValue('nama_sekolah', 'Nama Sekolah Default'),
+            // Tambahan:
+            'rataRataTugasPerSiswa' => $rataRataTugasPerSiswa,
+            'totalAssignmentSlotsForContext' => $totalAssignmentSlotsForContext,
         ];
 
         $pdf = Pdf::loadView('laporan.rekap_nilai_kelas_pdf', $data);

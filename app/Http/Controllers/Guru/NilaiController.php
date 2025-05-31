@@ -511,25 +511,25 @@ class NilaiController extends Controller
             ->select('tahun_ajaran')->distinct()
             ->orderBy('tahun_ajaran', 'desc')
             ->pluck('tahun_ajaran');
-        if ($availableTahunAjaran->isEmpty() && Auth::user()->guru) { // Tambahkan pengecekan role jika perlu
+        if ($availableTahunAjaran->isEmpty() && Auth::user()->guru) {
              $settingTa = Setting::getValue('tahun_ajaran_aktif');
              if ($settingTa) {
                  $availableTahunAjaran = collect([$settingTa]);
              } else {
-                 // Fallback jika guru tidak punya jadwal & setting tidak ada
                  $availableTahunAjaran = collect([date('Y').'/'.(date('Y')+1)]);
              }
         }
 
-
         $availableSemester = [];
         $availableKelas = collect([]);
         $availableMapel = collect([]);
-        $nilaiData = collect([]); // Ganti nama dari $nilaiKelas agar tidak ambigu
+        $nilaiData = collect([]);
         $bobotAktif = null;
         $kelasModel = null;
         $mapelModel = null;
         $showNilaiTable = false;
+        $rataRataTugasPerSiswa = []; // Inisialisasi array untuk rata-rata tugas
+        $totalAssignmentSlotsForContext = 0; // Inisialisasi jumlah slot tugas
 
         if ($selectedTahunAjaran) {
             $availableSemester = [1, 2];
@@ -542,8 +542,7 @@ class NilaiController extends Controller
                     ->distinct()->orderBy('kelas.nama_kelas')->get();
 
                 if ($selectedKelasId) {
-                    $kelasModel = Kelas::with('siswas')->find($selectedKelasId); // Load siswa di sini
-
+                    $kelasModel = Kelas::with('siswas')->find($selectedKelasId);
                     $availableMapel = DB::table('kelas_mata_pelajaran as kmp')
                         ->join('mata_pelajarans as mapel', 'kmp.mata_pelajaran_id', '=', 'mapel.id')
                         ->where('kmp.guru_id', $guru->id)
@@ -553,24 +552,54 @@ class NilaiController extends Controller
                         ->distinct()->orderBy('mapel.nama_mapel')->get();
 
                     if ($selectedMapelId && $kelasModel) {
-                         $mapelModel = MataPelajaran::find($selectedMapelId);
+                        $mapelModel = MataPelajaran::find($selectedMapelId);
                         $showNilaiTable = true;
 
-                        // Ambil data nilai
                         $nilaiData = Nilai::where('kelas_id', $selectedKelasId)
                             ->where('mata_pelajaran_id', $selectedMapelId)
                             ->where('tahun_ajaran', $selectedTahunAjaran)
                             ->where('semester', $selectedSemester)
-                            // ->with('siswa') // Tidak perlu with siswa di sini karena kita loop $kelasModel->siswas
                             ->get()
                             ->keyBy('siswa_id');
 
-                        // Ambil bobot dan pengaturan KKM/Predikat
                         $bobotAktif = BobotPenilaian::where('guru_id', $guru->id)
                             ->where('mata_pelajaran_id', $selectedMapelId)
                             ->where('kelas_id', $selectedKelasId)
                             ->where('tahun_ajaran', $selectedTahunAjaran)
                             ->first();
+
+                        // HITUNG TOTAL ASSIGNMENT SLOTS FOR CONTEXT
+                        if ($showNilaiTable) {
+                            $allNilaiTugasInContext = Nilai::where('kelas_id', $selectedKelasId)
+                                ->where('mata_pelajaran_id', $selectedMapelId)
+                                ->where('tahun_ajaran', $selectedTahunAjaran)
+                                ->where('semester', $selectedSemester)
+                                ->pluck('nilai_tugas');
+
+                            foreach ($allNilaiTugasInContext as $tugasArraySiswaLain) {
+                                if (is_array($tugasArraySiswaLain)) {
+                                    $totalAssignmentSlotsForContext = max($totalAssignmentSlotsForContext, count($tugasArraySiswaLain));
+                                }
+                            }
+                            if ($totalAssignmentSlotsForContext == 0 && $bobotAktif && $bobotAktif->bobot_tugas > 0) {
+                                 $totalAssignmentSlotsForContext = 1; // Default to 1 if bobot_tugas exists but no actual tasks
+                            }
+                        }
+
+
+                        // HITUNG RATA-RATA TUGAS UNTUK SETIAP SISWA
+                        if ($kelasModel->siswas && $kelasModel->siswas->count() > 0) {
+                            foreach ($kelasModel->siswas as $siswa) {
+                                $nilaiSiswa = $nilaiData->get($siswa->id);
+                                $currentStudentNilaiTugasArray = $nilaiSiswa?->nilai_tugas ?? [];
+
+                                // Gunakan $totalAssignmentSlotsForContext yang sudah dihitung
+                                $rataRataTugasPerSiswa[$siswa->id] = Nilai::calculateRataRataTugas(
+                                    $currentStudentNilaiTugasArray,
+                                    $totalAssignmentSlotsForContext // Pass the calculated total slots
+                                );
+                            }
+                        }
                     }
                 }
             }
@@ -586,10 +615,12 @@ class NilaiController extends Controller
             'availableMapel',
             'selectedMapelId',
             'showNilaiTable',
-            'kelasModel', // Kirim model Kelas (yang sudah di-load siswanya)
-            'mapelModel', // Kirim model MataPelajaran
-            'nilaiData',  // Kirim data nilai yang sudah di-keyBy siswa_id
-            'bobotAktif'  // Kirim bobot dan pengaturan KKM/Predikat
+            'kelasModel',
+            'mapelModel',
+            'nilaiData',
+            'bobotAktif',
+            'rataRataTugasPerSiswa', // Kirim variabel ini ke view
+            'totalAssignmentSlotsForContext' // Kirim ini juga
         ));
     }
 }

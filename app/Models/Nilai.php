@@ -37,29 +37,19 @@ class Nilai extends Model
      * @param int $totalAssignmentSlots Jumlah total slot tugas yang seharusnya ada.
      * @return float|null
      */
-    public static function calculateRataRataTugas(?array $nilaiTugasArray, int $totalAssignmentSlots): ?float
+    public static function calculateRataRataTugas($nilaiTugasArray, $totalSlots = 0)
     {
-        // Don't calculate if no array or no slots
-        if (!is_array($nilaiTugasArray) || $totalAssignmentSlots <= 0) {
+        if (!is_array($nilaiTugasArray) || $totalSlots <= 0) {
             return null;
         }
-
-        // Filter out non-numeric and null values
-        $validNilai = array_filter($nilaiTugasArray, function($nilai) {
-            return is_numeric($nilai) && $nilai !== null;
-        });
-
-        // If no valid grades, return null
-        if (empty($validNilai)) {
-            return null;
+        $nilaiLengkap = [];
+        for ($i = 0; $i < $totalSlots; $i++) {
+            $nilaiLengkap[] = isset($nilaiTugasArray[$i]) && is_numeric($nilaiTugasArray[$i])
+                ? floatval($nilaiTugasArray[$i])
+                : 0;
         }
-
-        // Calculate average
-        $sum = array_sum($validNilai);
-        $count = count($validNilai);
-
-        // Return average based on actual submitted assignments
-        return $count > 0 ? $sum / $count : null;
+        $sum = array_sum($nilaiLengkap);
+        return $totalSlots > 0 ? $sum / $totalSlots : null;
     }
 
     /**
