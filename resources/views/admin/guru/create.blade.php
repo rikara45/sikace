@@ -16,8 +16,9 @@
                         @csrf
 
                         <div class="mt-4">
-                            <x-input-label for="nip" :value="__('NIP (Nomor Induk Pegawai - Opsional)')" />
-                            <x-text-input id="nip" class="block mt-1 w-full" type="text" name="nip" :value="old('nip')" autofocus />
+                            {{-- Ubah label NIP --}}
+                            <x-input-label for="nip" :value="__('NIP (Nomor Induk Pegawai - Wajib Diisi)')" />
+                            <x-text-input id="nip" class="block mt-1 w-full" type="text" name="nip" :value="old('nip')" required autofocus />
                             <x-input-error :messages="$errors->get('nip')" class="mt-2" />
                         </div>
 
@@ -27,34 +28,21 @@
                             <x-input-error :messages="$errors->get('nama_guru')" class="mt-2" />
                         </div>
 
-                        <hr class="my-6">
-                        <h3 class="text-lg font-medium text-gray-900 mb-2">Akun Login Guru (Opsional)</h3>
-                        <p class="text-sm text-gray-600 mb-4">Isi Email dan Password jika guru ini akan memiliki akun untuk login.</p>
-
-                        <div class="mt-4">
-                            <x-input-label for="email" :value="__('Email (Untuk Login)')" />
-                            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" autocomplete="off" />
-                            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-                        </div>
-
-                        <div class="mt-4">
-                            <x-input-label for="password" :value="__('Password (Wajib jika email diisi)')" />
-                            <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" autocomplete="new-password" />
-                            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-                        </div>
-
-                        <div class="mt-4">
-                            <x-input-label for="password_confirmation" :value="__('Konfirmasi Password')" />
-                            <x-text-input id="password_confirmation" class="block mt-1 w-full" type="password" name="password_confirmation" autocomplete="new-password" />
-                            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
-                        </div>
-
+                        <BR></BR>
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <div class="font-semibold text-blue-800 mb-2">Akun Login Guru (Otomatis dibuat)</div>
+                                <p class="text-blue-700 text-sm">Setelah data berhasil disimpan, sistem akan otomatis membuat akun untuk setiap guru dengan:</p>
+                                <ul class="text-blue-700 text-sm mt-2 ml-4 list-disc">
+                                    <li><strong>Username:</strong> Nama Lengkap Guru (contoh: Nama Guru "Doni Susanto" maka username untuk loginnya adalah "doni.susanto") atau bisa juga menggunakan NIP.</li>
+                                    <li><strong>Password awal:</strong> NIP Guru</li>
+                                </ul>
+                            </div>
 
                         <div class="flex items-center justify-end mt-6">
                             <a href="{{ route('admin.guru.index') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150 mr-3">
                                 {{ __('Batal') }}
                             </a>
-
+                            
                             <x-primary-button>
                                 {{ __('Simpan Data Guru') }}
                             </x-primary-button>
