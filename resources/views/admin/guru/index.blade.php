@@ -23,7 +23,7 @@
                         <input type="hidden" name="sort" value="{{ request('sort', 'nama_guru') }}">
                         <input type="hidden" name="direction" value="{{ request('direction', 'asc') }}">
                         <div class="flex">
-                            <x-text-input id="search" class="block mt-1 w-full mr-2" type="text" name="search" :value="request('search')" placeholder="Cari Nama, NIP, atau Email..." />
+                            <x-text-input id="search" class="block mt-1 w-full mr-2" type="text" name="search" :value="request('search')" placeholder="Cari Nama, NIP..." />
                             <x-primary-button>
                                 {{ __('Cari') }}
                             </x-primary-button>
@@ -65,7 +65,7 @@
                                             @endif
                                         </a>
                                     </th>
-                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">Email Login</th>
+                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">Username Login</th>
                                     <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">Aksi</th>
                                 </tr>
                             </thead>
@@ -75,7 +75,10 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 border border-gray-300 text-center">{{ $gurus->firstItem() + $index }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300 text-center">{{ $guru->nip ?? '-' }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300 text-center">{{ $guru->nama_guru }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300 text-center">{{ $guru->user->email ?? '-' }}</td>
+                                        {{-- Ubah Data yang Ditampilkan menjadi format nama, fallback ke NIP --}}
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300 text-center">
+                                            {{ $guru->nama_guru ? strtolower(str_replace(' ', '.', $guru->nama_guru)) : ($guru->nip ?? '-') }}
+                                        </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium border border-gray-300 text-center">
                                             <div class="flex flex-wrap gap-2 justify-center">
                                                 <a href="{{ route('admin.guru.show', $guru) }}"

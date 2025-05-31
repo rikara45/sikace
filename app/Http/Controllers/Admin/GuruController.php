@@ -12,11 +12,92 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
 
 class GuruController extends Controller
 {
-    // ... (method index, create, store, edit, update, destroy tetap sama)
+    public function update(UpdateGuruRequest $request, Guru $guru)
+    {
+        DB::beginTransaction();
+        try {
+            $validated = $request->validated(); // $validated['email'] tidak akan ada
+            $userId = $guru->user_id;
+            $userToUpdate = $guru->user;
 
+            if ($userToUpdate) { 
+                $userData = [
+                    'name' => $validated['nama_guru'],
+                ];
+
+                $currentEmailIsOldNipBased = $guru->getOriginal('nip') && $userToUpdate->email === ($guru->getOriginal('nip') . '@teacher.sikace.internal');
+                $nipChanged = $validated['nip'] !== $guru->getOriginal('nip');
+
+                if ($nipChanged && $currentEmailIsOldNipBased) {
+                    $newNipBasedEmail = $validated['nip'] . '@teacher.sikace.internal';
+                    if (User::where('email', $newNipBasedEmail)->where('id', '!=', $userToUpdate->id)->exists()) {
+                        DB::rollBack();
+                        return redirect()->back()
+                                         ->with('error', "Perubahan NIP akan menghasilkan email internal '{$newNipBasedEmail}' yang sudah digunakan user lain.")
+                                         ->withInput();
+                    }
+                    $userData['email'] = $newNipBasedEmail;
+                }
+                // Logika untuk $validated['email'] tidak lagi relevan di sini.
+                
+                if (!empty($validated['password'])) {
+                    $userData['password'] = Hash::make($validated['password']);
+                }
+                $userToUpdate->update($userData);
+
+            } else { 
+                // Fallback jika guru belum punya akun user
+                $userEmailForCreation = $validated['nip'] . '@teacher.sikace.internal';
+                $userPassword = $validated['password'] ?? $validated['nip'];
+                
+                if (User::where('email', $userEmailForCreation)->exists()) {
+                    DB::rollBack();
+                    return redirect()->back()
+                                     ->with('error', 'Email internal yang akan dibuat untuk guru ini sudah terpakai.')
+                                     ->withInput();
+                }
+
+                $newUser = User::create([
+                    'name' => $validated['nama_guru'],
+                    'email' => $userEmailForCreation,
+                    'password' => Hash::make($userPassword),
+                    'email_verified_at' => now(),
+                ]);
+                $newUser->assignRole('guru');
+                $userId = $newUser->id;
+            }
+
+            $guruDataToUpdate = [
+                'nama_guru' => $validated['nama_guru'],
+                'nip' => $validated['nip'],
+                'user_id' => $userId,
+            ];
+            $guru->update($guruDataToUpdate);
+
+            if ($request->has('mapel_diampu')) {
+                $guru->mataPelajaransDiampu()->sync($request->input('mapel_diampu', []));
+            } else {
+                $guru->mataPelajaransDiampu()->detach();
+            }
+
+            DB::commit();
+
+            return redirect()->route('admin.guru.index')
+                             ->with('success', 'Data guru berhasil diperbarui.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Kesalahan saat memperbarui data guru: ' . $e->getMessage() . ' Stack: ' . $e->getTraceAsString());
+            return redirect()->back()
+                             ->with('error', 'Gagal memperbarui data guru: Terjadi kesalahan pada sistem.')
+                             ->withInput();
+        }
+    }
+    
     public function index(Request $request)
     {
         $search = $request->input('search');
@@ -52,117 +133,77 @@ class GuruController extends Controller
     {
         return view('admin.guru.create');
     }
-
+    
     public function store(StoreGuruRequest $request)
     {
         DB::beginTransaction();
         try {
-            $validated = $request->validated();
-            $userId = null;
+            $validated = $request->validated(); 
 
-            if (!empty($validated['email'])) {
-                $user = User::create([
-                    'name' => $validated['nama_guru'],
-                    'email' => $validated['email'],
-                    'password' => Hash::make($validated['password']),
-                    'email_verified_at' => now(),
-                ]);
-                $user->assignRole('guru');
-                $userId = $user->id;
+            $userEmailForCreation = $validated['nip'] . '@teacher.sikace.internal';
+            $userPassword = $validated['nip']; 
+
+            if (User::where('email', $userEmailForCreation)->exists()) {
+                DB::rollBack();
+                Log::error("Email internal yang dihasilkan '{$userEmailForCreation}' untuk guru dengan NIP '{$validated['nip']}' sudah ada.");
+                return redirect()->back()
+                                 ->with('error', 'Gagal membuat akun untuk guru. NIP ini mungkin sudah terasosiasi dengan akun lain melalui email internal.')
+                                 ->withInput();
             }
 
+            $user = User::create([
+                'name' => $validated['nama_guru'],
+                'email' => $userEmailForCreation,
+                'password' => Hash::make($userPassword),
+                'email_verified_at' => now(),
+            ]);
+            $user->assignRole('guru');
+            $userId = $user->id;
+            
             Guru::create([
                 'nama_guru' => $validated['nama_guru'],
-                'nip' => $validated['nip'] ?? null,
+                'nip' => $validated['nip'], 
                 'user_id' => $userId,
             ]);
 
             DB::commit();
 
             return redirect()->route('admin.guru.index')
-                             ->with('success', 'Data guru berhasil ditambahkan.');
+                             ->with('success', 'Data guru berhasil ditambahkan. Akun login telah dibuat otomatis dengan NIP sebagai password awal.');
 
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Kesalahan saat menyimpan data guru baru: ' . $e->getMessage() . ' Stack: ' . $e->getTraceAsString());
             return redirect()->back()
-                             ->with('error', 'Gagal menambahkan data guru: ' . $e->getMessage())
+                             ->with('error', 'Gagal menambahkan data guru: Terjadi kesalahan pada sistem.')
                              ->withInput();
         }
     }
-
+    
     public function show(Guru $guru)
     {
+        $guru->load('user'); // Pastikan user dimuat
         $teachingAssignments = DB::table('kelas_mata_pelajaran as kmp')
             ->join('mata_pelajarans as mp', 'kmp.mata_pelajaran_id', '=', 'mp.id')
             ->join('kelas as k', 'kmp.kelas_id', '=', 'k.id')
             ->where('kmp.guru_id', $guru->id)
             ->select('mp.nama_mapel', 'mp.kode_mapel', 'k.nama_kelas', 'k.tahun_ajaran', 'k.id as kelas_id_for_link')
-            ->orderBy('mp.nama_mapel', 'asc') // Urutkan berdasarkan nama mapel dulu
-            ->orderBy('k.tahun_ajaran', 'desc') // Lalu tahun ajaran
-            ->orderBy('k.nama_kelas', 'asc')     // Lalu nama kelas
+            ->orderBy('mp.nama_mapel', 'asc') 
+            ->orderBy('k.tahun_ajaran', 'desc') 
+            ->orderBy('k.nama_kelas', 'asc')     
             ->get();
 
         return view('admin.guru.show', compact('guru', 'teachingAssignments'));
     }
 
-
     public function edit(Guru $guru)
     {
-        $guru->load('user');
+        $guru->load('user'); // Muat relasi user
         $semuaMapel = MataPelajaran::orderBy('nama_mapel')->get();
         $mapelDiampuIds = $guru->mataPelajaransDiampu()->pluck('mata_pelajarans.id')->toArray();
 
         return view('admin.guru.edit', compact('guru', 'semuaMapel', 'mapelDiampuIds'));
     }
-
-    public function update(UpdateGuruRequest $request, Guru $guru)
-    {
-        DB::beginTransaction();
-        try {
-            $validated = $request->validated();
-            $userId = $guru->user_id;
-
-            if (!empty($validated['email'])) {
-                if ($guru->user) {
-                    $updateData = [
-                        'name' => $validated['nama_guru'],
-                        'email' => $validated['email'],
-                    ];
-                    if (!empty($validated['password'])) {
-                        $updateData['password'] = Hash::make($validated['password']);
-                    }
-                    $guru->user->update($updateData);
-                } else {
-                    $user = User::create([
-                        'name' => $validated['nama_guru'],
-                        'email' => $validated['email'],
-                        'password' => !empty($validated['password']) ? Hash::make($validated['password']) : Hash::make('password'),
-                        'email_verified_at' => now(),
-                    ]);
-                    $user->assignRole('guru');
-                    $userId = $user->id;
-                }
-            }
-
-            $guru->update([
-                'nama_guru' => $validated['nama_guru'],
-                'nip' => $validated['nip'] ?? null,
-                'user_id' => $userId,
-            ]);
-
-            DB::commit();
-
-            return redirect()->route('admin.guru.index')
-                             ->with('success', 'Data guru berhasil diperbarui.');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()
-                             ->with('error', 'Gagal memperbarui data guru: ' . $e->getMessage())
-                             ->withInput();
-        }
-    }
-
 
     public function destroy(Guru $guru)
     {
@@ -172,6 +213,8 @@ class GuruController extends Controller
                  $guru->user->delete();
              }
              DB::table('kelas_mata_pelajaran')->where('guru_id', $guru->id)->delete();
+             DB::table('kelas')->where('wali_kelas_id', $guru->id)->update(['wali_kelas_id' => null]);
+             DB::table('bobot_penilaians')->where('guru_id', $guru->id)->delete();
              $guru->delete();
              DB::commit();
 
@@ -179,9 +222,10 @@ class GuruController extends Controller
                              ->with('success', 'Data guru berhasil dihapus.');
         } catch (\Exception $e) {
              DB::rollBack();
+             Log::error('Kesalahan saat menghapus guru: '.$e->getMessage(). ' Stack: '.$e->getTraceAsString());
              if (str_contains($e->getMessage(), 'Integrity constraint violation')) {
                  return redirect()->route('admin.guru.index')
-                                  ->with('error', 'Gagal menghapus guru. Pastikan guru tidak terdaftar sebagai wali kelas atau memiliki relasi data lain.');
+                                  ->with('error', 'Gagal menghapus guru. Pastikan guru tidak terdaftar sebagai wali kelas atau memiliki relasi data lain yang belum ditangani.');
              }
              return redirect()->route('admin.guru.index')
                               ->with('error', 'Gagal menghapus data guru: ' . $e->getMessage());

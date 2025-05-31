@@ -16,11 +16,10 @@
                         @csrf
                         @method('PUT')
 
-                        {{-- Bagian Data Guru (NIP, Nama) --}}
                         <h3 class="text-lg font-medium text-gray-900 mb-2">Informasi Dasar Guru</h3>
                         <div class="mt-4">
-                            <x-input-label for="nip" :value="__('NIP (Opsional)')" />
-                            <x-text-input id="nip" class="block mt-1 w-full" type="text" name="nip" :value="old('nip', $guru->nip)" autofocus />
+                            <x-input-label for="nip" :value="__('NIP (Wajib Diisi)')" />
+                            <x-text-input id="nip" class="block mt-1 w-full" type="text" name="nip" :value="old('nip', $guru->nip)" required autofocus />
                             <x-input-error :messages="$errors->get('nip')" class="mt-2" />
                         </div>
                         <div class="mt-4">
@@ -29,17 +28,14 @@
                             <x-input-error :messages="$errors->get('nama_guru')" class="mt-2" />
                         </div>
 
-                        {{-- Bagian Akun Login (Email, Password) --}}
                         <hr class="my-6">
                         <h3 class="text-lg font-medium text-gray-900 mb-2">Akun Login Guru</h3>
-                         <p class="text-sm text-gray-600 mb-4">Ubah email atau atur ulang password. Kosongkan password jika tidak ingin mengubahnya.</p>
+                         <p class="text-sm text-gray-600 mb-4">Atur ulang password. Kosongkan password jika tidak ingin mengubahnya.</p>
                         <div class="mt-4">
-                            <x-input-label for="email" :value="__('Email (Untuk Login)')" />
-                            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email', $guru->user?->email)" />
-                            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-                             @if($guru->user)
-                             <p class="text-xs text-gray-500 mt-1">Mengosongkan email tidak akan menghapus akun login yang sudah ada.</p>
-                             @endif
+                            <x-input-label for="username_display" :value="__('Username (Untuk Login)')" />
+                            <x-text-input id="username_display" class="block mt-1 w-full bg-gray-100 cursor-not-allowed" type="text" name="username_display_disabled"
+                                :value="$guru->nama_guru ? strtolower(str_replace(' ', '.', $guru->nama_guru)) : '-'"
+                                readonly disabled tabindex="-1" />
                         </div>
                         <div class="mt-4">
                             <x-input-label for="password" :value="__('Password Baru (Kosongkan jika tidak diubah)')" />
@@ -52,19 +48,16 @@
                             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
                         </div>
 
-                        {{-- >> BAGIAN BARU: Mata Pelajaran Diampu << --}}
                         <hr class="my-6">
                         <h3 class="text-lg font-medium text-gray-900 mb-2">Mata Pelajaran yang Diampu</h3>
                         <div class="mt-4 space-y-2">
                              <x-input-label :value="__('Pilih mata pelajaran yang diajar oleh guru ini:')" />
                              @if($semuaMapel->count() > 0)
                                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 border border-gray-200 rounded-md max-h-60 overflow-y-auto">
-                                    {{-- Loop semua mapel dan buat checkbox --}}
                                     @foreach ($semuaMapel as $mapel)
                                         <label for="mapel_{{ $mapel->id }}" class="flex items-center">
                                             <input type="checkbox" id="mapel_{{ $mapel->id }}" name="mapel_diampu[]" value="{{ $mapel->id }}"
                                                    class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
-                                                   {{-- Cek apakah ID mapel ini ada di array $mapelDiampuIds --}}
                                                    @if(in_array($mapel->id, old('mapel_diampu', $mapelDiampuIds))) checked @endif
                                             >
                                             <span class="ml-2 text-sm text-gray-600">{{ $mapel->nama_mapel }} {{ $mapel->kode_mapel ? '('.$mapel->kode_mapel.')' : '' }}</span>
@@ -76,7 +69,6 @@
                              @endif
                              <x-input-error :messages="$errors->get('mapel_diampu')" class="mt-2" />
                         </div>
-                        {{-- Akhir Bagian Baru --}}
                         <div class="flex items-center justify-end mt-6">
                             <a href="{{ route('admin.guru.index') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150 mr-3">
                                 {{ __('Batal') }}

@@ -14,15 +14,24 @@ class UpdateGuruRequest extends FormRequest
 
     public function rules(): array
     {
-        // Dapatkan objek Guru dari route model binding
         $guru = $this->route('guru');
 
         return [
             'nama_guru' => ['required', 'string', 'max:100'],
-            'nip' => ['nullable', 'string', 'max:20', Rule::unique('gurus')->ignore($guru->id)], // Abaikan NIP guru ini saat cek unique
-            // Validasi untuk update/membuat akun user
-            'email' => ['nullable', 'string', 'email', 'max:255', Rule::unique('users')->ignore($guru->user_id)], // Abaikan email user guru ini saat cek unique
-            'password' => ['nullable', 'string', 'min:8', 'confirmed'], // Password hanya diupdate jika diisi
+            'nip' => ['required', 'string', 'max:20', Rule::unique('gurus')->ignore($guru->id)],
+            // Validasi email dihapus karena field dihilangkan/dinonaktifkan dari form
+            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
+            'mapel_diampu' => ['nullable', 'array'],
+            'mapel_diampu.*' => ['exists:mata_pelajarans,id'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'nama_guru.required' => 'Nama guru wajib diisi.',
+            'nip.required' => 'NIP wajib diisi.',
+            'nip.unique' => 'NIP ini sudah terdaftar untuk guru lain.',
         ];
     }
 }

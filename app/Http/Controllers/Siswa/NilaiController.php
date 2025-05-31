@@ -8,8 +8,9 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Nilai;
 use App\Models\Siswa;
 use App\Models\MataPelajaran;
-use App\Models\BobotPenilaian; // <-- Import BobotPenilaian
-use App\Models\Setting; // Import Setting class
+use App\Models\BobotPenilaian;
+use App\Models\Setting;
+use Illuminate\Support\Facades\Log;
 
 class NilaiController extends Controller
 {
@@ -125,27 +126,71 @@ class NilaiController extends Controller
             ->first();
 
         $rataRataTugas = null;
-        $kkmValue = null; // Inisialisasi KKM
+        $kkmValue = null;
+        $totalAssignmentSlots = 0;
+        $bobotSetting = null;
 
         if ($nilaiDetail) {
-            if (is_array($nilaiDetail->nilai_tugas) && count(array_filter($nilaiDetail->nilai_tugas, 'is_numeric')) > 0) {
-                $rataRataTugas = Nilai::calculateRataRataTugas($nilaiDetail->nilai_tugas);
-            }
-
-            // Ambil KKM dari BobotPenilaian berdasarkan konteks nilaiDetail
-            // $nilaiDetail->guru_id adalah guru yang menginput nilai, yang seharusnya sama dengan guru yang set KKM
-            if ($nilaiDetail->kelas_id && $nilaiDetail->mata_pelajaran_id && $nilaiDetail->tahun_ajaran && $nilaiDetail->guru_id) {
-                 $bobotSetting = BobotPenilaian::where('guru_id', $nilaiDetail->guru_id)
+            // Get BobotPenilaian settings
+            if ($nilaiDetail->guru_id && $nilaiDetail->kelas_id && 
+                $nilaiDetail->mata_pelajaran_id && $nilaiDetail->tahun_ajaran) {
+                $bobotSetting = BobotPenilaian::where('guru_id', $nilaiDetail->guru_id)
                     ->where('mata_pelajaran_id', $nilaiDetail->mata_pelajaran_id)
                     ->where('kelas_id', $nilaiDetail->kelas_id)
                     ->where('tahun_ajaran', $nilaiDetail->tahun_ajaran)
                     ->first();
+                
                 if ($bobotSetting) {
                     $kkmValue = $bobotSetting->kkm;
                 }
             }
-            // Jika $kkmValue masih null, bisa jadi guru belum set KKM untuk konteks ini.
-            // Anda bisa menambahkan fallback ke KKM default jika ada, atau biarkan 'N/A'.
+
+            // Determine totalAssignmentSlots
+            if ($nilaiDetail->kelas_id && $nilaiDetail->mata_pelajaran_id && 
+                $nilaiDetail->tahun_ajaran && $nilaiDetail->semester) {
+                
+                $allNilaiTugasInContext = Nilai::where('kelas_id', $nilaiDetail->kelas_id)
+                    ->where('mata_pelajaran_id', $nilaiDetail->mata_pelajaran_id)
+                    ->where('tahun_ajaran', $nilaiDetail->tahun_ajaran)
+                    ->where('semester', $nilaiDetail->semester)
+                    ->pluck('nilai_tugas');
+
+                foreach ($allNilaiTugasInContext as $tugasArraySiswaLain) {
+                    if (is_array($tugasArraySiswaLain)) {
+                        $totalAssignmentSlots = max($totalAssignmentSlots, count($tugasArraySiswaLain));
+                    }
+                }
+                Log::info("[showMapel] Context slots: {$totalAssignmentSlots} for Student ID: {$siswa->id}, Subject ID: {$matapelajaran_id}, Year: {$filterTahunAjaran}, Term: {$filterSemester}");
+            }
+
+            // Fallback to current student's assignment count
+            if ($totalAssignmentSlots == 0 && is_array($nilaiDetail->nilai_tugas) && 
+                !empty($nilaiDetail->nilai_tugas)) {
+                $totalAssignmentSlots = count($nilaiDetail->nilai_tugas);
+                Log::info("[showMapel] Using current student slots: {$totalAssignmentSlots}");
+            }
+
+            // Final fallback for bobot_tugas > 0
+            if ($totalAssignmentSlots == 0 && $bobotSetting && $bobotSetting->bobot_tugas > 0) {
+                $totalAssignmentSlots = 1;
+                Log::info("[showMapel] Using fallback slot: {$totalAssignmentSlots}");
+            }
+
+            // Calculate average if we have slots and data
+            $currentStudentNilaiTugas = is_array($nilaiDetail->nilai_tugas) ? 
+                                      $nilaiDetail->nilai_tugas : [];
+
+            if ($totalAssignmentSlots > 0) {
+                $rataRataTugas = Nilai::calculateRataRataTugas(
+                    $currentStudentNilaiTugas, 
+                    $totalAssignmentSlots
+                );
+                Log::info("[showMapel] Calculated average: {$rataRataTugas}");
+            } else {
+                Log::warning("[showMapel] No slots available for average calculation");
+            }
+        } else {
+            Log::warning("[showMapel] No grade details found for Student ID: {$siswa->id}");
         }
 
         return view('siswa.nilai.show_mapel', compact(
@@ -156,7 +201,7 @@ class NilaiController extends Controller
             'filterTahunAjaran',
             'filterSemester',
             'rataRataTugas',
-            'kkmValue' // <-- Kirim KKM ke view
+            'kkmValue'
         ));
     }
 }
