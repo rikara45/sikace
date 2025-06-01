@@ -5,10 +5,18 @@
         </h2>
     </x-slot>
 
+    {{-- Loading Overlay --}}
+    <div id="loadingOverlay" style="display: none;" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50">
+        <div class="flex flex-col items-center">
+            <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-white mb-4"></div>
+            <p class="text-white text-lg font-semibold">Mengimpor data siswa, mohon tunggu...</p>
+        </div>
+    </div>
+
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
-            {{-- Tombol Kembali ke Daftar Siswa dipindahkan ke sini dan diratakan kiri --}}
+            {{-- Tombol Kembali ke Daftar Siswa --}}
             <div class="mb-6">
                 <a href="{{ route('admin.siswa.index') }}"
                    class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150">
@@ -19,7 +27,7 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 
-                {{-- Panduan Format CSV (Sekarang di sisi kiri pada tampilan lg) --}}
+                {{-- Panduan Format CSV --}}
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="guide-container">
                         <div class="header bg-gradient-to-br from-indigo-600 to-purple-700 text-white p-6 text-center rounded-t-lg">
@@ -28,6 +36,7 @@
                         </div>
                         
                         <div class="p-6">
+                            {{-- ... (rest of your guide content) ... --}}
                             <div class="mb-6">
                                 <h2 class="text-lg font-semibold text-gray-800 mb-3 flex items-center">
                                     <svg class="w-5 h-5 mr-2 text-indigo-600" fill="currentColor" viewBox="0 0 24 24">
@@ -83,7 +92,7 @@
                                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
                                     <div class="font-semibold text-blue-800 mb-2 flex items-center">
                                         <svg class="w-5 h-5 mr-2 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M9,22A1,1 0 0,1 8,21V18H4A2,2 0 0,1 2,16V4C2,2.89 2.9,2 4,2H20A2,2 0,0 1 22,4V16A2,2 0 0,1 20,18H13.9L10.2,21.71C10,21.9 9.75,22 9.5,22V22H9Z" />
+                                            <path d="M9,22A1,1 0 0,1 8,21V18H4A2,2 0 0,1 2,16V4C2,2.89 2.9,2 4,2H20A2,2 0 0,1 22,4V16A2,2 0 0,1 20,18H13.9L10.2,21.71C10,21.9 9.75,22 9.5,22V22H9Z" />
                                         </svg>
                                         Langkah-langkah Penggunaan:
                                     </div>
@@ -121,10 +130,9 @@
                     </div>
                 </div>
 
+                {{-- Form Import --}}
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900">
-                        {{-- Tombol kembali sudah dipindahkan ke atas --}}
-
                         @include('layouts.partials.alert-messages')
 
                         @if (session('import_validation_errors'))
@@ -144,7 +152,7 @@
                             </div>
                         @endif
 
-                        <form method="POST" action="{{ route('admin.siswa.import') }}" enctype="multipart/form-data">
+                        <form id="siswaImportForm" method="POST" action="{{ route('admin.siswa.import') }}" enctype="multipart/form-data">
                             @csrf
 
                             <div class="mb-6">
@@ -181,8 +189,40 @@
                         </form>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
+
+    @push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const importForm = document.getElementById('siswaImportForm'); // Get form by ID
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const fileInput = document.getElementById('csv_file');
+            const kelasInput = document.getElementById('kelas_id');
+
+            if (importForm && loadingOverlay && fileInput && kelasInput) {
+                importForm.addEventListener('submit', function(event) {
+                    // Check if file and class are selected
+                    let isValid = true;
+                    if (fileInput.files.length === 0) {
+                        // You can add a custom message here or rely on Laravel's validation
+                        isValid = false;
+                    }
+                    if (kelasInput.value === '') {
+                        // You can add a custom message here
+                        isValid = false;
+                    }
+
+                    if (isValid) {
+                        loadingOverlay.style.display = 'flex';
+                    } else {
+                        // If not valid, prevent showing the loader and let HTML5/Laravel validation handle it
+                        // event.preventDefault(); // Uncomment if you want to stop submission here for custom alerts
+                    }
+                });
+            }
+        });
+    </script>
+    @endpush
 </x-app-layout>
