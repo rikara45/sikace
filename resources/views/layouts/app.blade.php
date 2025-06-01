@@ -105,6 +105,10 @@
                                 <span class="inline-block w-5 text-center flex-shrink-0"><i class="fas fa-graduation-cap"></i></span>
                                 <span class="ml-3 truncate" x-show="sidebarOpen || isMobile">{{ __('Kenaikan Kelas') }}</span>
                             </x-nav-link>
+                            <x-nav-link :href="route('profile.edit')" :active="request()->routeIs('profile.edit')" :sidebar="true">
+                                <span class="inline-block w-5 text-center flex-shrink-0"><i class="fas fa-user-cog"></i></span>
+                                <span class="ml-3 truncate" x-show="sidebarOpen || isMobile">{{ __('Profil Saya') }}</span>
+                            </x-nav-link>
                         </nav>
                         <div class="px-2 py-4 border-t border-slate-700 flex-shrink-0">
                             <form method="POST" action="{{ route('logout') }}">
@@ -180,6 +184,10 @@
                             <x-nav-link :href="route('guru.rekap-nilai.index')" :active="request()->routeIs('guru.rekap-nilai.index')" :sidebar="true">
                                 <span class="inline-block w-5 text-center flex-shrink-0"><i class="fas fa-list-alt"></i></span>
                                 <span class="ml-3 truncate" x-show="sidebarOpen || isMobile">{{ __('Rekap Nilai Siswa') }}</span>
+                            </x-nav-link>
+                            <x-nav-link :href="route('profile.edit')" :active="request()->routeIs('profile.edit')" :sidebar="true">
+                                <span class="inline-block w-5 text-center flex-shrink-0"><i class="fas fa-user-cog"></i></span>
+                                <span class="ml-3 truncate" x-show="sidebarOpen || isMobile">{{ __('Profil Saya') }}</span>
                             </x-nav-link>
                         </nav>
                         <div class="px-2 py-4 border-t border-slate-700 flex-shrink-0">
