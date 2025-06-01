@@ -90,7 +90,6 @@
                     @endif
 
                     @if(!empty($nilaiBelumLengkap))
-<<<<<<< HEAD
                         <div class="p-4 bg-orange-50 border-l-4 border-orange-400 rounded-r-md">
                             <div class="flex items-start">
                                 <div class="flex-shrink-0 pt-0.5">
@@ -111,18 +110,6 @@
                                     <p class="text-xs text-orange-600 mt-2">Silakan lengkapi nilai melalui menu <a href="{{ route('guru.nilai.input') }}" class="font-semibold hover:underline hover:text-orange-800">Input & Pengaturan Nilai</a>.</p>
                                 </div>
                             </div>
-=======
-                        <div class="mb-4 p-4 bg-orange-100 border-l-4 border-orange-500 text-orange-700">
-                            <p class="font-bold mb-2">Nilai Siswa Belum Lengkap</p>
-                            <p class="text-sm mb-1">Terdapat siswa yang nilainya belum lengkap untuk TA {{ $tahunAjaranAktif }} - Semester {{ $semesterAktif }} pada:</p>
-                            <ul class="list-disc list-inside text-sm space-y-1">
-                                @foreach($nilaiBelumLengkap as $item)
-                                     <li>
-                                        Kelas {{ $item->nama_kelas }} - {{ $item->nama_mapel }} (Baru {{ $item->siswa_dinilai }} dari {{ $item->total_siswa }} siswa). Tekan <a href="{{ route('guru.nilai.input', ['filter_tahun_ajaran' => $tahunAjaranAktif, 'filter_semester' => $semesterAktif, 'filter_kelas_id' => $item->kelas_id_raw, 'filter_matapelajaran_id' => $item->mapel_id_raw]) }}" class="hover:underline font-semibold text-blue-600">Disini</a> Untuk Melengkapi Nilai, .
-                                    </li>
-                                @endforeach
-                            </ul>
->>>>>>> 33a94954c4fdf825778c01951545955f4724a2d5
                         </div>
                     @endif
 
