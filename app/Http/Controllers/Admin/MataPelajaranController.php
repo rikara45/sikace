@@ -16,13 +16,17 @@ class MataPelajaranController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
+        $sort = $request->input('sort', 'nama_mapel');
+        $direction = $request->input('direction', 'asc');
+
         $mataPelajarans = MataPelajaran::when($search, function ($query, $search) {
                 return $query->where('nama_mapel', 'like', "%{$search}%")
                              ->orWhere('kode_mapel', 'like', "%{$search}%");
             })
-            ->orderBy('nama_mapel', 'asc')
-            ->paginate(10);
-        return view('admin.matapelajaran.index', compact('mataPelajarans'));
+            ->orderBy($sort, $direction)
+            ->paginate(10)
+            ->withQueryString(); // Untuk menjaga parameter filter pada pagination
+        return view('admin.matapelajaran.index', compact('mataPelajarans', 'sort', 'direction'));
     }
 
     /**

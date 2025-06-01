@@ -25,9 +25,22 @@
                         <table class="min-w-full divide-y divide-gray-200 border-collapse border border-gray-300">
                             <thead class="bg-gray-100">
                                 <tr>
+                                    @php
+                                        $currentSort = $sort ?? 'nama_mapel'; // Default ke nama_mapel jika $sort tidak ada
+                                        $currentDirection = $direction ?? 'asc'; // Default ke asc jika $direction tidak ada
+                                        $nextDirectionKode = ($currentSort === 'kode_mapel' && $currentDirection === 'asc') ? 'desc' : 'asc';
+                                        $nextDirectionNama = ($currentSort === 'nama_mapel' && $currentDirection === 'asc') ? 'desc' : 'asc';
+                                    @endphp
                                     <th class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">No</th>
                                     <th class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">Kode Mapel</th>
-                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">Nama Mata Pelajaran</th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">
+                                        <a href="{{ route('admin.matapelajaran.index', array_merge(request()->query(), ['sort' => 'nama_mapel', 'direction' => $nextDirectionNama])) }}" class="flex items-center justify-center gap-1 hover:underline">
+                                            Nama Mata Pelajaran
+                                            @if($currentSort === 'nama_mapel')
+                                                <svg class="w-3 h-3 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $currentDirection === 'asc' ? 'M5 15l7-7 7 7' : 'M19 9l-7 7-7-7' }}"></path></svg>
+                                            @endif
+                                        </a>
+                                    </th>
                                     <th class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">Aksi</th>
                                 </tr>
                             </thead>

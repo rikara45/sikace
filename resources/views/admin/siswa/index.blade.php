@@ -123,19 +123,12 @@
                                 <tr>
                                     <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">No</th>
                                     @php
-                                        $currentSort = request('sort', 'nis');
+                                        $currentSort = request('sort', 'nama_siswa');
                                         $currentDirection = request('direction', 'asc');
                                         $nextDirectionNis = ($currentSort === 'nis' && $currentDirection === 'asc') ? 'desc' : 'asc';
                                         $nextDirectionNama = ($currentSort === 'nama_siswa' && $currentDirection === 'asc') ? 'desc' : 'asc';
                                     @endphp
-                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">
-                                        <a href="{{ route('admin.siswa.index', array_merge(request()->query(), ['sort' => 'nis', 'direction' => $nextDirectionNis])) }}" class="flex items-center justify-center gap-1 hover:underline">
-                                            NIS
-                                            @if($currentSort === 'nis')
-                                                <svg class="w-3 h-3 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $currentDirection === 'asc' ? 'M5 15l7-7 7 7' : 'M19 9l-7 7-7-7' }}"></path></svg>
-                                            @endif
-                                        </a>
-                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">NIS</th>
                                     <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">
                                         <a href="{{ route('admin.siswa.index', array_merge(request()->query(), ['sort' => 'nama_siswa', 'direction' => $nextDirectionNama])) }}" class="flex items-center justify-center gap-1 hover:underline">
                                             Nama Siswa
