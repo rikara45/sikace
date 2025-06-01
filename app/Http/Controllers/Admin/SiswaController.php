@@ -25,7 +25,7 @@ class SiswaController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
-        $sort = $request->input('sort', 'nis');
+        $sort = $request->input('sort', 'nama_siswa'); // Default sort by nama_siswa
         $direction = $request->input('direction', 'asc');
         $kelasIds = $request->input('kelas_ids', []);
         $statusFilter = $request->input('status', Siswa::STATUS_AKTIF); // Default filter status aktif

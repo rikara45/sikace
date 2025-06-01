@@ -18,8 +18,8 @@
 
                      <form id="filterForm" method="GET" action="{{ route('admin.kelas.index') }}" class="mb-4">
                         {{-- Hidden inputs untuk sort --}}
-                        <input type="hidden" name="sort" value="{{ request('sort', 'tahun_ajaran') }}">
-                        <input type="hidden" name="direction" value="{{ request('direction', 'desc') }}">
+                        <input type="hidden" name="sort" value="{{ request('sort', 'nama_kelas') }}">
+                        <input type="hidden" name="direction" value="{{ request('direction', 'asc') }}">
                         
                         {{-- Hidden inputs untuk filter tahun ajaran yang terpilih (diisi oleh JS) --}}
                         @if(request('tahun_ajaran_filters'))
@@ -39,8 +39,23 @@
                         <table class="min-w-full divide-y divide-gray-200 border-collapse border border-gray-300">
                             <thead class="bg-gray-100">
                                 <tr>
+                                    @php
+                                        // sort dan direction sudah di-pass dari KelasController
+                                        $currentSort = $sort ?? request('sort', 'nama_kelas');
+                                        $currentDirection = $direction ?? request('direction', 'asc');
+                                        $nextDirectionNamaKelas = ($currentSort === 'nama_kelas' && $currentDirection === 'asc') ? 'desc' : 'asc';
+                                    @endphp
                                     <th class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">No</th>
-                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">Nama Kelas</th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">
+                                        <a href="{{ route('admin.kelas.index', array_merge(request()->except(['page']), ['sort' => 'nama_kelas', 'direction' => $nextDirectionNamaKelas])) }}" class="flex items-center justify-center gap-1 hover:underline">
+                                            Nama Kelas  
+                                            @if($currentSort === 'nama_kelas')
+                                                <svg class="w-3 h-3 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $currentDirection === 'asc' ? 'M5 15l7-7 7 7' : 'M19 9l-7 7-7-7' }}"></path>
+                                                </svg>
+                                            @endif
+                                        </a>
+                                    </th>
                                     
                                     {{-- Kolom Header Tahun Ajaran dengan Filter Dropdown --}}
                                     <th scope="col" class="px-4 py-2 text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300 relative text-center" x-data="{ openTaFilter: false }" @click.away="openTaFilter = false">

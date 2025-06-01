@@ -36,23 +36,12 @@
                                 <tr>
                                     <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">No</th>
                                     @php
-                                        $currentSort = request('sort', 'nip');
+                                        $currentSort = request('sort', 'nama_guru');
                                         $currentDirection = request('direction', 'asc');
                                         $nextDirectionNip = ($currentSort === 'nip' && $currentDirection === 'asc') ? 'desc' : 'asc';
                                         $nextDirectionNama = ($currentSort === 'nama_guru' && $currentDirection === 'asc') ? 'desc' : 'asc';
                                     @endphp
-                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">
-                                        <a href="{{ route('admin.guru.index', array_merge(request()->query(), ['sort' => 'nip', 'direction' => $nextDirectionNip])) }}" class="flex items-center justify-center gap-1 hover:underline">
-                                            NIP
-                                            @if($currentSort === 'nip' || (!request()->has('sort') && !request()->has('direction')))
-                                                @if($currentDirection === 'asc' || (!request()->has('sort') && !request()->has('direction')))
-                                                    <svg class="w-3 h-3 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
-                                                @else
-                                                    <svg class="w-3 h-3 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                                                @endif
-                                            @endif
-                                        </a>
-                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">NIP</th>
                                     <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">
                                         <a href="{{ route('admin.guru.index', array_merge(request()->query(), ['sort' => 'nama_guru', 'direction' => $nextDirectionNama])) }}" class="flex items-center justify-center gap-1 hover:underline">
                                             Nama Guru

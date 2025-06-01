@@ -21,8 +21,8 @@ class KelasController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
-        $sort = $request->input('sort', 'tahun_ajaran');
-        $direction = $request->input('direction', 'desc');
+        $sort = $request->input('sort', 'nama_kelas');
+        $direction = $request->input('direction', 'asc');
         
         // Ambil filter tahun ajaran yang dipilih dari request
         $selectedTahunAjarans = $request->input('tahun_ajaran_filters', []);
@@ -170,11 +170,13 @@ class KelasController extends Controller
 
     public function show(Kelas $kelas)
     {
+        // Corrected load statement: removed ->with('guruPengampu')
         $kelas->load(['waliKelas', 'siswas', 'mataPelajarans' => function ($query) use ($kelas) {
             $query->wherePivot('tahun_ajaran', $kelas->tahun_ajaran)
-                  ->withPivot('id','guru_id', 'tahun_ajaran')
-                  ->with('guruPengampu');
+                  ->withPivot('id','guru_id', 'tahun_ajaran'); // guru_id from pivot is loaded
         }]);
+        // The accessor $mapel->guruPengampu will use the pivot->guru_id to find the Guru
+
         $assignedSubjects = $kelas->mataPelajarans;
         $availableSubjects = MataPelajaran::orderBy('nama_mapel')->get();
         $availableTeachers = Guru::orderBy('nama_guru')->get();
