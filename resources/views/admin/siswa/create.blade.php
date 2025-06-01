@@ -70,9 +70,15 @@
                              <x-input-error :messages="$errors->get('jenis_kelamin')" class="mt-2" />
                          </div>
 
-                         <hr class="my-6">
-                         <h3 class="text-lg font-medium text-gray-900 mb-2">Akun Login Siswa (Otomatis dibuat)</h3>
-                         <p class="text-sm text-gray-600 mb-4">Akun login akan dibuat secara otomatis dengan username dan password awal sama dengan NIS siswa.</p>
+                         <br>
+                         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                <div class="font-semibold text-blue-800 mb-2">Akun Login Siswa (Otomatis dibuat)</div>
+                                <p class="text-blue-700 text-sm">Setelah data berhasil disimpan, sistem akan otomatis membuat akun untuk setiap siswa dengan:</p>
+                                <ul class="text-blue-700 text-sm mt-2 ml-4 list-disc">
+                                    <li><strong>Username:</strong> NIS Siswa</li>
+                                    <li><strong>Password awal:</strong> NIS Siswa</li>
+                                </ul>
+                            </div>
 
 
                         {{-- <div class="mt-4">

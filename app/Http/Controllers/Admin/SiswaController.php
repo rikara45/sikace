@@ -4,18 +4,18 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Siswa;
-use App\Models\Kelas; // Import model Kelas
-use App\Models\User; // Import model User
+use App\Models\Kelas;
+use App\Models\User;
 use App\Http\Requests\Admin\StoreSiswaRequest;
-use App\Http\Requests\Admin\UpdateSiswaRequest; // Import StoreSiswaRequest
+use App\Http\Requests\Admin\UpdateSiswaRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash; // Import Hash facade
+use Illuminate\Support\Facades\Hash;
 use App\Imports\SiswaImport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Support\Facades\Log; // Import Log facade
+use Illuminate\Support\Facades\Log;
 
 class SiswaController extends Controller
 {
@@ -25,9 +25,10 @@ class SiswaController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
-        $sort = $request->input('sort', 'nis');
+        $sort = $request->input('sort', 'nama_siswa'); // Default sort by nama_siswa
         $direction = $request->input('direction', 'asc');
-        $kelasIds = $request->input('kelas_ids', []); // Ambil array kelas_ids dari request
+        $kelasIds = $request->input('kelas_ids', []);
+        $statusFilter = $request->input('status', Siswa::STATUS_AKTIF); // Default filter status aktif
 
         $siswas = Siswa::with('kelas')
             ->when($search, function ($query, $search) {
@@ -35,16 +36,26 @@ class SiswaController extends Controller
                              ->orWhere('nis', 'like', "%{$search}%");
             })
             ->when(!empty($kelasIds), function ($query) use ($kelasIds) {
-                // Filter berdasarkan kelas_id jika kelasIds tidak kosong
                 return $query->whereIn('kelas_id', $kelasIds);
+            })
+            ->when($statusFilter, function ($query, $statusFilter) { // Filter berdasarkan status
+                return $query->where('status', $statusFilter);
             })
             ->orderBy($sort, $direction)
             ->paginate(10)
-            ->withQueryString(); // Pertahankan query string (termasuk filter kelas)
+            ->withQueryString();
 
-        $kelas = Kelas::orderBy('nama_kelas')->get(); // Ambil semua data kelas
+        $kelas = Kelas::orderBy('nama_kelas')->get();
+        $allStatus = [
+            Siswa::STATUS_AKTIF => 'Aktif',
+            Siswa::STATUS_LULUS => 'Lulus',
+            Siswa::STATUS_PINDAH => 'Pindah',
+            Siswa::STATUS_DIKELUARKAN => 'Dikeluarkan',
+            // Tambahkan status lain jika ada
+        ];
 
-        return view('admin.siswa.index', compact('siswas', 'kelas')); // Kirim data kelas ke view
+        // Kirim $allStatus dan $statusFilter ke view
+        return view('admin.siswa.index', compact('siswas', 'kelas', 'allStatus', 'statusFilter'));
     }
 
     /**
@@ -52,8 +63,14 @@ class SiswaController extends Controller
      */
     public function create()
     {
-        $kelas = Kelas::orderBy('nama_kelas')->get(); // Ambil semua data kelas untuk dropdown
-        return view('admin.siswa.create', compact('kelas'));
+        $kelas = Kelas::orderBy('nama_kelas')->get();
+        $allStatus = [
+            Siswa::STATUS_AKTIF => 'Aktif',
+            Siswa::STATUS_LULUS => 'Lulus',
+            Siswa::STATUS_PINDAH => 'Pindah',
+            Siswa::STATUS_DIKELUARKAN => 'Dikeluarkan',
+        ];
+        return view('admin.siswa.create', compact('kelas', 'allStatus'));
     }
 
     /**
@@ -65,21 +82,19 @@ class SiswaController extends Controller
 
         DB::beginTransaction();
         try {
-            // Buat "email" unik untuk tabel users berdasarkan NIS
-            // Ini hanya untuk memenuhi constraint unique email di tabel users,
-            // Siswa TIDAK AKAN LOGIN dengan ini.
-            $pseudoEmail = $validated['nis'] . '@internal.siswa'; // Pastikan domain ini tidak dipakai untuk email asli
+            $pseudoEmail = $validated['nis'] . '@internal.siswa';
 
-            // Buat user baru
             $user = User::create([
                 'name' => $validated['nama_siswa'],
                 'email' => $pseudoEmail,
-                'password' => Hash::make($validated['nis']), // Password awal adalah NIS
-                'email_verified_at' => now(), // Anggap langsung terverifikasi
+                'password' => Hash::make($validated['nis']),
+                'email_verified_at' => now(),
             ]);
             $user->assignRole('siswa');
 
-            // Buat data Siswa
+            // Pastikan status default 'aktif' jika tidak ada input
+            $status = $validated['status'] ?? Siswa::STATUS_AKTIF;
+
             Siswa::create([
                 'user_id' => $user->id,
                 'nama_siswa' => $validated['nama_siswa'],
@@ -87,6 +102,7 @@ class SiswaController extends Controller
                 'nisn' => $validated['nisn'] ?? null,
                 'kelas_id' => $validated['kelas_id'],
                 'jenis_kelamin' => $validated['jenis_kelamin'] ?? null,
+                'status' => $status,
             ]);
 
             DB::commit();
@@ -102,8 +118,7 @@ class SiswaController extends Controller
      */
     public function show(Siswa $siswa)
     {
-         // Load relasi yang mungkin dibutuhkan
-         $siswa->load('kelas', 'user', 'nilais.mataPelajaran'); // Contoh load relasi nilai dan mapel
+         $siswa->load('kelas', 'user', 'nilais.mataPelajaran');
         return view('admin.siswa.show', compact('siswa'));
     }
 
@@ -112,9 +127,15 @@ class SiswaController extends Controller
      */
     public function edit(Siswa $siswa)
     {
-         $siswa->load('user'); // Load data user terkait jika ada
+         $siswa->load('user');
          $kelas = Kelas::orderBy('nama_kelas')->get();
-        return view('admin.siswa.edit', compact('siswa', 'kelas'));
+         $allStatus = [
+            Siswa::STATUS_AKTIF => 'Aktif',
+            Siswa::STATUS_LULUS => 'Lulus',
+            Siswa::STATUS_PINDAH => 'Pindah',
+            Siswa::STATUS_DIKELUARKAN => 'Dikeluarkan',
+         ];
+        return view('admin.siswa.edit', compact('siswa', 'kelas', 'allStatus'));
     }
 
     /**
@@ -126,39 +147,28 @@ class SiswaController extends Controller
 
         DB::beginTransaction();
         try {
-            // Update data Siswa
-            $siswa->update([
+            $siswaData = [
                 'nama_siswa' => $validated['nama_siswa'],
-                'nis' => $validated['nis'], // Jika NIS diubah, password user juga harus dipertimbangkan untuk diubah
+                'nis' => $validated['nis'],
                 'nisn' => $validated['nisn'] ?? null,
                 'kelas_id' => $validated['kelas_id'],
                 'jenis_kelamin' => $validated['jenis_kelamin'] ?? null,
-            ]);
+                'status' => $request->input('status', $siswa->status), // Ambil status dari request
+            ];
+            $siswa->update($siswaData);
 
-            // Update data User terkait (nama, dan mungkin password jika NIS berubah dan password belum diubah siswa)
             if ($siswa->user) {
                 $userDataToUpdate = ['name' => $validated['nama_siswa']];
-
-                // Jika NIS (yang jadi password awal) diubah oleh admin, DAN siswa belum pernah ganti password sendiri
-                // Anda mungkin ingin mengupdate password user juga. Ini butuh logika tambahan
-                // untuk mengecek apakah password user masih hash dari NIS lama.
-                // Untuk saat ini, kita tidak update password dari sini kecuali ada input password khusus.
-                // Jika Anda menyediakan field password di form edit siswa oleh admin:
-                // if (!empty($validated['password'])) {
-                //     $userDataToUpdate['password'] = Hash::make($validated['password']);
-                // }
-                // Jika NIS diubah dan password user masih sama dengan hash NIS lama:
-                // if ($siswa->isDirty('nis') && Hash::check($siswa->getOriginal('nis'), $siswa->user->password)) {
-                //     $userDataToUpdate['password'] = Hash::make($validated['nis']);
-                // }
-
-
-                // Jika NIS diubah, "email" pseudo juga perlu diubah
                 if ($siswa->isDirty('nis')) {
                      $userDataToUpdate['email'] = $validated['nis'] . '@internal.siswa';
                 }
-
-
+                // Jika status siswa diubah menjadi bukan 'aktif', mungkin nonaktifkan user
+                if ($siswaData['status'] !== Siswa::STATUS_AKTIF) {
+                    // Logika untuk menonaktifkan user, misal:
+                    // $siswa->user->update(['is_active' => false]); // Jika ada kolom is_active di tabel users
+                    // Atau hapus role siswa agar tidak bisa login ke dashboard siswa
+                    // $siswa->user->removeRole('siswa');
+                }
                 $siswa->user->update($userDataToUpdate);
             }
 
@@ -171,28 +181,29 @@ class SiswaController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Ubah method destroy untuk update status siswa menjadi 'lulus' atau status lain.
+     * Jika benar-benar ingin menghapus, mungkin perlu fitur terpisah atau konfirmasi berlapis.
      */
     public function destroy(Siswa $siswa)
     {
         DB::beginTransaction();
         try {
-            // Hapus user terkait jika ada (opsional, tergantung kebijakan)
-             if ($siswa->user) {
-                 $siswa->user->delete();
-             }
+            // Untuk siswa lulus, ubah statusnya
+            $siswa->update(['status' => Siswa::STATUS_LULUS]);
+            // Anda bisa juga menonaktifkan user login nya di sini jika perlu
+            // if ($siswa->user) {
+            //     $siswa->user->update(['is_active' => false]);
+            //     // $siswa->user->removeRole('siswa');
+            // }
 
-             // Hapus data siswa (nilai terkait akan terhapus otomatis karena cascade delete)
-             $siswa->delete();
-
-             DB::commit();
+            DB::commit();
 
             return redirect()->route('admin.siswa.index')
-                         ->with('success', 'Data siswa berhasil dihapus.');
+                         ->with('success', 'Status siswa ' . $siswa->nama_siswa . ' berhasil diubah menjadi Lulus.');
         } catch (\Exception $e) {
              DB::rollBack();
              return redirect()->route('admin.siswa.index')
-                          ->with('error', 'Gagal menghapus data siswa: ' . $e->getMessage());
+                          ->with('error', 'Gagal mengubah status siswa: ' . $e->getMessage());
         }
     }
 
@@ -217,12 +228,10 @@ class SiswaController extends Controller
 
         $file = $request->file('csv_file');
         $kelasId = $request->input('kelas_id');
-
         $import = new SiswaImport($kelasId);
 
         try {
             Excel::import($import, $file);
-
             $importedCount = $import->getImportedCount();
             $skippedCount = $import->getSkippedCount();
             $errorsEncountered = $import->getErrorsEncountered();
@@ -236,17 +245,15 @@ class SiswaController extends Controller
             }
 
             if (!empty($errorsEncountered)) {
-                // Batasi jumlah error yang ditampilkan agar tidak terlalu panjang
                 $displayErrors = array_slice($errorsEncountered, 0, 10);
                 $errorMessage = "Detail kesalahan: <br>" . implode("<br>", $displayErrors);
                 if (count($errorsEncountered) > 10) {
                     $errorMessage .= "<br>...dan " . (count($errorsEncountered) - 10) . " kesalahan lainnya (lihat log untuk detail).";
                 }
                  return redirect()->route('admin.siswa.index')
-                             ->with('warning', implode(" ", $messages)) // Menggunakan warning jika ada yg diskip
-                             ->with('import_errors', $errorMessage); // Kirim detail error terpisah
+                             ->with('warning', implode(" ", $messages))
+                             ->with('import_errors', $errorMessage);
             }
-
             if ($importedCount > 0 && $skippedCount == 0) {
                  return redirect()->route('admin.siswa.index')->with('success', implode(" ", $messages));
             } elseif ($importedCount == 0 && $skippedCount > 0) {
@@ -256,7 +263,6 @@ class SiswaController extends Controller
             } else {
                  return redirect()->route('admin.siswa.index')->with('info', 'Tidak ada data siswa yang diproses dari file.');
             }
-
 
         } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
             $failures = $e->failures();

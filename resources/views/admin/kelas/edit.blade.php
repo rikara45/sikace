@@ -24,15 +24,22 @@
                         </div>
 
                         <div class="mt-4">
-                            <x-input-label for="tahun_ajaran" :value="__('Tahun Ajaran (Format: YYYY/YYYY)')" />
-                            <x-text-input id="tahun_ajaran" class="block mt-1 w-full" type="text" name="tahun_ajaran" :value="old('tahun_ajaran', $kelas->tahun_ajaran)" placeholder="Contoh: 2024/2025" required />
+                            <x-input-label for="tahun_ajaran" :value="__('Tahun Ajaran')" />
+                            <select id="tahun_ajaran" name="tahun_ajaran" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                                <option value="">-- Pilih Tahun Ajaran --</option>
+                                @foreach ($tahunAjaranOptions as $tahun)
+                                    <option value="{{ $tahun }}" @selected(old('tahun_ajaran', $kelas->tahun_ajaran) == $tahun)>
+                                        {{ $tahun }}
+                                    </option>
+                                @endforeach
+                            </select>
                             <x-input-error :messages="$errors->get('tahun_ajaran')" class="mt-2" />
                         </div>
 
                         <div class="mt-4">
                             <x-input-label for="wali_kelas_id" :value="__('Wali Kelas (Opsional)')" />
                             <select id="wali_kelas_id" name="wali_kelas_id" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                                <option value="">-- Tidak Ada Wali Kelas --</option>
+                                <option value="">-- Pilih Wali Kelas --</option>
                                 @foreach ($gurus as $guru)
                                     <option value="{{ $guru->id }}"
                                         @if (old('wali_kelas_id', $kelas->wali_kelas_id) == $guru->id) selected @endif

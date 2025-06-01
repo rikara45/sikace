@@ -64,6 +64,19 @@
                             <x-input-error :messages="$errors->get('jenis_kelamin')" class="mt-2" />
                         </div>
 
+                        {{-- Add the new status field here --}}
+                        <div class="mt-4">
+                            <x-input-label for="status" :value="__('Status Siswa')" />
+                            <select id="status" name="status" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                                @foreach ($allStatus as $value => $label)
+                                    <option value="{{ $value }}" @selected(old('status', $siswa->status) == $value)>
+                                        {{ $label }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <x-input-error :messages="$errors->get('status')" class="mt-2" />
+                        </div>
+
                         <hr class="my-6">
                         <h3 class="text-lg font-medium text-gray-900 mb-2">Akun Login Siswa</h3>
                         <p class="text-sm text-gray-600 mb-4">

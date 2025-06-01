@@ -83,7 +83,9 @@
                         <td>{{ $index + 1 }}</td>
                         <td>{{ $siswa->nis }}</td>
                         <td class="nama">{{ $siswa->nama_siswa }}</td>
-                        <td>{{ !is_null($rataRataTugas) ? number_format($rataRataTugas, 2) : '-' }}</td>
+                        <td>
+                            {{ !is_null($rataRataTugasPerSiswa[$siswa->id] ?? null) ? number_format($rataRataTugasPerSiswa[$siswa->id], 2) : '-' }}
+                        </td>
                         <td>{{ $nilaiSiswa?->nilai_uts ?? '-' }}</td>
                         <td>{{ $nilaiSiswa?->nilai_uas ?? '-' }}</td>
                         <td><b>{{ !is_null($nilaiSiswa?->nilai_akhir) ? number_format($nilaiSiswa->nilai_akhir, 2) : '-' }}</b></td>

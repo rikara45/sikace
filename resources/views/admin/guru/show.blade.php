@@ -28,8 +28,8 @@
                                 <td class="px-4 py-2">{{ $guru->nama_guru }}</td>
                             </tr>
                             <tr>
-                                <td class="px-4 py-2 font-semibold text-gray-700 w-1/3">Email Login</td>
-                                <td class="px-4 py-2">{{ $guru->user?->email ?? '-' }}</td>
+                                <td class="px-4 py-2 font-semibold text-gray-700 w-1/3">Username Login</td>
+                                <td class="px-4 py-2">{{ $guru->nama_guru ? strtolower(str_replace(' ', '.', $guru->nama_guru)) : ($guru->nip ?? '-') }}</td>
                             </tr>
                              <tr class="bg-gray-50">
                                 <td class="px-4 py-2 font-semibold text-gray-700 w-1/3">Wali Kelas</td>

@@ -101,6 +101,10 @@
                                 <span class="inline-block w-5 text-center flex-shrink-0"><i class="fas fa-cog"></i></span>
                                 <span class="ml-3 truncate" x-show="sidebarOpen || isMobile">{{ __('Setting Tahun Ajaran') }}</span>
                             </x-nav-link>
+                            <x-nav-link :href="route('admin.kenaikan.form')" :active="request()->routeIs('admin.kenaikan.*')" :sidebar="true">
+                                <span class="inline-block w-5 text-center flex-shrink-0"><i class="fas fa-graduation-cap"></i></span>
+                                <span class="ml-3 truncate" x-show="sidebarOpen || isMobile">{{ __('Kenaikan Kelas') }}</span>
+                            </x-nav-link>
                         </nav>
                         <div class="px-2 py-4 border-t border-slate-700 flex-shrink-0">
                             <form method="POST" action="{{ route('logout') }}">

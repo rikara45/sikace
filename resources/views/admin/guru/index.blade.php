@@ -23,7 +23,7 @@
                         <input type="hidden" name="sort" value="{{ request('sort', 'nama_guru') }}">
                         <input type="hidden" name="direction" value="{{ request('direction', 'asc') }}">
                         <div class="flex">
-                            <x-text-input id="search" class="block mt-1 w-full mr-2" type="text" name="search" :value="request('search')" placeholder="Cari Nama, NIP, atau Email..." />
+                            <x-text-input id="search" class="block mt-1 w-full mr-2" type="text" name="search" :value="request('search')" placeholder="Cari Nama, NIP..." />
                             <x-primary-button>
                                 {{ __('Cari') }}
                             </x-primary-button>
@@ -36,23 +36,12 @@
                                 <tr>
                                     <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">No</th>
                                     @php
-                                        $currentSort = request('sort', 'nip');
+                                        $currentSort = request('sort', 'nama_guru');
                                         $currentDirection = request('direction', 'asc');
                                         $nextDirectionNip = ($currentSort === 'nip' && $currentDirection === 'asc') ? 'desc' : 'asc';
                                         $nextDirectionNama = ($currentSort === 'nama_guru' && $currentDirection === 'asc') ? 'desc' : 'asc';
                                     @endphp
-                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">
-                                        <a href="{{ route('admin.guru.index', array_merge(request()->query(), ['sort' => 'nip', 'direction' => $nextDirectionNip])) }}" class="flex items-center justify-center gap-1 hover:underline">
-                                            NIP
-                                            @if($currentSort === 'nip' || (!request()->has('sort') && !request()->has('direction')))
-                                                @if($currentDirection === 'asc' || (!request()->has('sort') && !request()->has('direction')))
-                                                    <svg class="w-3 h-3 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
-                                                @else
-                                                    <svg class="w-3 h-3 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                                                @endif
-                                            @endif
-                                        </a>
-                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">NIP</th>
                                     <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">
                                         <a href="{{ route('admin.guru.index', array_merge(request()->query(), ['sort' => 'nama_guru', 'direction' => $nextDirectionNama])) }}" class="flex items-center justify-center gap-1 hover:underline">
                                             Nama Guru
@@ -65,7 +54,7 @@
                                             @endif
                                         </a>
                                     </th>
-                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">Email Login</th>
+                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">Username Login</th>
                                     <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider border border-gray-300">Aksi</th>
                                 </tr>
                             </thead>
@@ -75,7 +64,10 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 border border-gray-300 text-center">{{ $gurus->firstItem() + $index }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300 text-center">{{ $guru->nip ?? '-' }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300 text-center">{{ $guru->nama_guru }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300 text-center">{{ $guru->user->email ?? '-' }}</td>
+                                        {{-- Ubah Data yang Ditampilkan menjadi format nama, fallback ke NIP --}}
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300 text-center">
+                                            {{ $guru->nama_guru ? strtolower(str_replace(' ', '.', $guru->nama_guru)) : ($guru->nip ?? '-') }}
+                                        </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium border border-gray-300 text-center">
                                             <div class="flex flex-wrap gap-2 justify-center">
                                                 <a href="{{ route('admin.guru.show', $guru) }}"

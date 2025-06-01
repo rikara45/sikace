@@ -10,14 +10,13 @@ use App\Models\MataPelajaran;
 use App\Models\Nilai;
 use App\Models\BobotPenilaian;
 use App\Models\Setting;
-use App\Models\Guru;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log;
 
 class NilaiController extends Controller
 {
-    // Helper mirip getFilterData dari PengaturanController
     private function getFilterDataForNilai(Request $request, $guru)
     {
         $data = [];
@@ -387,37 +386,38 @@ class NilaiController extends Controller
 
         if ($validator->fails()) {
             return redirect()->back()
-                        ->withErrors($validator)
-                        ->withInput();
-        }
-
-        $isAssigned = DB::table('kelas_mata_pelajaran')
-            ->where('guru_id', $guru->id)
-            ->where('kelas_id', $kelasId)
-            ->where('mata_pelajaran_id', $mapelId)
-            ->where('tahun_ajaran', $tahunAjaran)
-            ->exists();
-        if (!$isAssigned) {
-             abort(403, 'Akses Ditolak.');
+                ->withErrors($validator)
+                ->withInput()
+                ->with('scroll_to', 'form-nilai-siswa-section');
         }
 
         $pengaturanPenilaian = BobotPenilaian::where('guru_id', $guru->id)
             ->where('mata_pelajaran_id', $mapelId)
             ->where('kelas_id', $kelasId)
             ->where('tahun_ajaran', $tahunAjaran)
-            ->first(); // Tidak lagi firstOrFail agar bisa handle jika belum diset
+            ->first();
 
         if (!$pengaturanPenilaian) {
             return redirect()->back()
-                             ->with('error_nilai', 'Pengaturan KKM dan Bobot belum diatur untuk mata pelajaran/kelas/periode ini. Harap atur terlebih dahulu.')
+                             ->with('error_nilai', 'Pengaturan KKM dan Bobot belum diatur. Harap atur terlebih dahulu.')
                              ->withInput()
                              ->with('scroll_to','nilai'); // Scroll ke bagian input nilai
         }
 
+        $maxTugasCountThisSubmission = 0;
+        if (isset($gradesData) && is_array($gradesData)) {
+            foreach ($gradesData as $siswaId => $dataSiswa) {
+                if (isset($dataSiswa['nilai_tugas']) && is_array($dataSiswa['nilai_tugas'])) {
+                    $maxTugasCountThisSubmission = max($maxTugasCountThisSubmission, count($dataSiswa['nilai_tugas']));
+                }
+            }
+        }
+
+        $totalAssignmentSlots = $maxTugasCountThisSubmission > 0 ? $maxTugasCountThisSubmission : 0;
+
         $bobotTugasPersen = $pengaturanPenilaian->bobot_tugas;
         $bobotUtsPersen = $pengaturanPenilaian->bobot_uts;
         $bobotUasPersen = $pengaturanPenilaian->bobot_uas;
-        // Ambil KKM dan batas predikat yang sudah disimpan dari $pengaturanPenilaian
         $kkmDb = $pengaturanPenilaian->kkm;
         $batasA_db = $pengaturanPenilaian->batas_a;
         $batasB_db = $pengaturanPenilaian->batas_b;
@@ -426,18 +426,33 @@ class NilaiController extends Controller
         DB::beginTransaction();
         try {
             foreach ($gradesData as $siswaId => $nilaiKomponen) {
-                $nilaiTugasArray = isset($nilaiKomponen['nilai_tugas']) && is_array($nilaiKomponen['nilai_tugas'])
-                                  ? array_values(array_filter($nilaiKomponen['nilai_tugas'], fn($val) => is_numeric($val) && $val !== '' && $val !== null))
-                                  : [];
-                $nilaiUts = isset($nilaiKomponen['nilai_uts']) && is_numeric($nilaiKomponen['nilai_uts']) ? (float)$nilaiKomponen['nilai_uts'] : null;
-                $nilaiUas = isset($nilaiKomponen['nilai_uas']) && is_numeric($nilaiKomponen['nilai_uas']) ? (float)$nilaiKomponen['nilai_uas'] : null;
+                $nilaiTugasSiswaDariForm = $nilaiKomponen['nilai_tugas'] ?? [];
+                
+                $processedNilaiTugasArray = [];
+                for ($i = 0; $i < $totalAssignmentSlots; $i++) {
+                    $score = $nilaiTugasSiswaDariForm[$i] ?? null;
+                    if (is_numeric($score)) {
+                        $processedNilaiTugasArray[] = (float)$score;
+                    } else {
+                        $processedNilaiTugasArray[] = null;
+                    }
+                }
+
+                $nilaiUts = isset($nilaiKomponen['nilai_uts']) && is_numeric($nilaiKomponen['nilai_uts']) ? 
+                            (float)$nilaiKomponen['nilai_uts'] : null;
+                $nilaiUas = isset($nilaiKomponen['nilai_uas']) && is_numeric($nilaiKomponen['nilai_uas']) ? 
+                            (float)$nilaiKomponen['nilai_uas'] : null;
 
                 $nilaiAkhir = Nilai::calculateNilaiAkhir(
-                    $nilaiTugasArray, $nilaiUts, $nilaiUas,
-                    $bobotTugasPersen, $bobotUtsPersen, $bobotUasPersen
+                    $processedNilaiTugasArray,
+                    $nilaiUts, 
+                    $nilaiUas,
+                    $bobotTugasPersen, 
+                    $bobotUtsPersen, 
+                    $bobotUasPersen,
+                    $totalAssignmentSlots
                 );
                 
-                // Gunakan KKM dan batas yang sudah disimpan untuk getPredikat
                 $predikat = Nilai::getPredikat($nilaiAkhir, $kkmDb, $batasC_db, $batasB_db, $batasA_db);
 
                 Nilai::updateOrCreate(
@@ -449,7 +464,7 @@ class NilaiController extends Controller
                         'semester' => $semester,
                     ],
                     [
-                        'nilai_tugas' => !empty($nilaiTugasArray) ? $nilaiTugasArray : null,
+                        'nilai_tugas' => !empty($processedNilaiTugasArray) ? $processedNilaiTugasArray : null,
                         'nilai_uts' => $nilaiUts,
                         'nilai_uas' => $nilaiUas,
                         'nilai_akhir' => $nilaiAkhir,
@@ -459,6 +474,7 @@ class NilaiController extends Controller
                 );
             }
             DB::commit();
+            
             return redirect()->route('guru.nilai.input', [
                 'filter_tahun_ajaran' => $tahunAjaran,
                 'filter_semester' => $semester,
@@ -466,14 +482,16 @@ class NilaiController extends Controller
                 'filter_matapelajaran_id' => $mapelId,
             ])->with('success_nilai', 'Semua nilai berhasil disimpan.')
               ->with('scroll_to', 'nilai');
+
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error("Gagal menyimpan nilai: " . $e->getMessage() . " - Trace: " . $e->getTraceAsString());
             return redirect()->route('guru.nilai.input', [
                 'filter_tahun_ajaran' => $tahunAjaran,
                 'filter_semester' => $semester,
                 'filter_kelas_id' => $kelasId,
                 'filter_matapelajaran_id' => $mapelId,
-            ])->with('error', 'Terjadi kesalahan saat menyimpan nilai: ' . $e->getMessage());
+            ])->with('error_nilai', 'Terjadi kesalahan saat menyimpan nilai: ' . $e->getMessage());
         }
     }
 
@@ -493,25 +511,25 @@ class NilaiController extends Controller
             ->select('tahun_ajaran')->distinct()
             ->orderBy('tahun_ajaran', 'desc')
             ->pluck('tahun_ajaran');
-        if ($availableTahunAjaran->isEmpty() && Auth::user()->guru) { // Tambahkan pengecekan role jika perlu
+        if ($availableTahunAjaran->isEmpty() && Auth::user()->guru) {
              $settingTa = Setting::getValue('tahun_ajaran_aktif');
              if ($settingTa) {
                  $availableTahunAjaran = collect([$settingTa]);
              } else {
-                 // Fallback jika guru tidak punya jadwal & setting tidak ada
                  $availableTahunAjaran = collect([date('Y').'/'.(date('Y')+1)]);
              }
         }
 
-
         $availableSemester = [];
         $availableKelas = collect([]);
         $availableMapel = collect([]);
-        $nilaiData = collect([]); // Ganti nama dari $nilaiKelas agar tidak ambigu
+        $nilaiData = collect([]);
         $bobotAktif = null;
         $kelasModel = null;
         $mapelModel = null;
         $showNilaiTable = false;
+        $rataRataTugasPerSiswa = []; // Inisialisasi array untuk rata-rata tugas
+        $totalAssignmentSlotsForContext = 0; // Inisialisasi jumlah slot tugas
 
         if ($selectedTahunAjaran) {
             $availableSemester = [1, 2];
@@ -524,8 +542,7 @@ class NilaiController extends Controller
                     ->distinct()->orderBy('kelas.nama_kelas')->get();
 
                 if ($selectedKelasId) {
-                    $kelasModel = Kelas::with('siswas')->find($selectedKelasId); // Load siswa di sini
-
+                    $kelasModel = Kelas::with('siswas')->find($selectedKelasId);
                     $availableMapel = DB::table('kelas_mata_pelajaran as kmp')
                         ->join('mata_pelajarans as mapel', 'kmp.mata_pelajaran_id', '=', 'mapel.id')
                         ->where('kmp.guru_id', $guru->id)
@@ -535,39 +552,75 @@ class NilaiController extends Controller
                         ->distinct()->orderBy('mapel.nama_mapel')->get();
 
                     if ($selectedMapelId && $kelasModel) {
-                         $mapelModel = MataPelajaran::find($selectedMapelId);
+                        $mapelModel = MataPelajaran::find($selectedMapelId);
                         $showNilaiTable = true;
 
-                        // Ambil data nilai
                         $nilaiData = Nilai::where('kelas_id', $selectedKelasId)
                             ->where('mata_pelajaran_id', $selectedMapelId)
                             ->where('tahun_ajaran', $selectedTahunAjaran)
                             ->where('semester', $selectedSemester)
-                            // ->with('siswa') // Tidak perlu with siswa di sini karena kita loop $kelasModel->siswas
                             ->get()
                             ->keyBy('siswa_id');
 
-                        // Ambil bobot dan pengaturan KKM/Predikat
                         $bobotAktif = BobotPenilaian::where('guru_id', $guru->id)
                             ->where('mata_pelajaran_id', $selectedMapelId)
                             ->where('kelas_id', $selectedKelasId)
                             ->where('tahun_ajaran', $selectedTahunAjaran)
                             ->first();
+
+                        // HITUNG TOTAL ASSIGNMENT SLOTS FOR CONTEXT
+                        if ($showNilaiTable) {
+                            $allNilaiTugasInContext = Nilai::where('kelas_id', $selectedKelasId)
+                                ->where('mata_pelajaran_id', $selectedMapelId)
+                                ->where('tahun_ajaran', $selectedTahunAjaran)
+                                ->where('semester', $selectedSemester)
+                                ->pluck('nilai_tugas');
+
+                            foreach ($allNilaiTugasInContext as $tugasArraySiswaLain) {
+                                if (is_array($tugasArraySiswaLain)) {
+                                    $totalAssignmentSlotsForContext = max($totalAssignmentSlotsForContext, count($tugasArraySiswaLain));
+                                }
+                            }
+                            if ($totalAssignmentSlotsForContext == 0 && $bobotAktif && $bobotAktif->bobot_tugas > 0) {
+                                 $totalAssignmentSlotsForContext = 1; // Default to 1 if bobot_tugas exists but no actual tasks
+                            }
+                        }
+
+
+                        // HITUNG RATA-RATA TUGAS UNTUK SETIAP SISWA
+                        if ($kelasModel->siswas && $kelasModel->siswas->count() > 0) {
+                            foreach ($kelasModel->siswas as $siswa) {
+                                $nilaiSiswa = $nilaiData->get($siswa->id);
+                                $currentStudentNilaiTugasArray = $nilaiSiswa?->nilai_tugas ?? [];
+
+                                // Gunakan $totalAssignmentSlotsForContext yang sudah dihitung
+                                $rataRataTugasPerSiswa[$siswa->id] = Nilai::calculateRataRataTugas(
+                                    $currentStudentNilaiTugasArray,
+                                    $totalAssignmentSlotsForContext // Pass the calculated total slots
+                                );
+                            }
+                        }
                     }
                 }
             }
         }
 
         return view('guru.nilai.rekap_nilai_form', compact(
-            'availableTahunAjaran', 'selectedTahunAjaran',
-            'availableSemester', 'selectedSemester',
-            'availableKelas', 'selectedKelasId',
-            'availableMapel', 'selectedMapelId',
+            'availableTahunAjaran',
+            'selectedTahunAjaran',
+            'availableSemester',
+            'selectedSemester',
+            'availableKelas',
+            'selectedKelasId',
+            'availableMapel',
+            'selectedMapelId',
             'showNilaiTable',
-            'kelasModel', // Kirim model Kelas (yang sudah di-load siswanya)
-            'mapelModel', // Kirim model MataPelajaran
-            'nilaiData',  // Kirim data nilai yang sudah di-keyBy siswa_id
-            'bobotAktif'  // Kirim bobot dan pengaturan KKM/Predikat
+            'kelasModel',
+            'mapelModel',
+            'nilaiData',
+            'bobotAktif',
+            'rataRataTugasPerSiswa', // Kirim variabel ini ke view
+            'totalAssignmentSlotsForContext' // Kirim ini juga
         ));
     }
 }

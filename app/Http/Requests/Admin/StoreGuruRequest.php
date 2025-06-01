@@ -9,7 +9,6 @@ class StoreGuruRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // Hanya admin yang boleh
         return $this->user()->hasRole('admin');
     }
 
@@ -17,17 +16,17 @@ class StoreGuruRequest extends FormRequest
     {
         return [
             'nama_guru' => ['required', 'string', 'max:100'],
-            'nip' => ['nullable', 'string', 'max:20', 'unique:gurus,nip'], // NIP unik jika diisi
-            // Validasi untuk membuat akun user (opsional)
-            'email' => ['nullable', 'string', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['nullable', 'required_with:email', 'string', 'min:8', 'confirmed'], // Password wajib jika email diisi
+            'nip' => ['required', 'string', 'max:20', 'unique:gurus,nip'], // NIP sekarang wajib dan unik
+            // Email dan password sudah dihapus dari form create sebelumnya
         ];
     }
 
-    public function messages(): array // Pesan error kustom (opsional)
+    public function messages(): array
     {
         return [
-            'password.required_with' => 'Password wajib diisi jika Email diisi.',
+            'nama_guru.required' => 'Nama guru wajib diisi.',
+            'nip.required' => 'NIP wajib diisi.',
+            'nip.unique' => 'NIP ini sudah terdaftar.',
         ];
     }
 }

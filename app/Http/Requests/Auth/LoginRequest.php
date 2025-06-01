@@ -10,6 +10,8 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use App\Models\Siswa;
 use App\Models\User;
+use App\Models\Guru; // Tambahkan ini
+use Illuminate\Support\Facades\DB; // Tambahkan ini
 
 class LoginRequest extends FormRequest
 {
@@ -45,38 +47,54 @@ class LoginRequest extends FormRequest
 
         $loginIdentifier = $this->input('login_identifier');
         $password = $this->input('password');
+        $remember = $this->boolean('remember');
 
-        // Coba login sebagai Siswa menggunakan NIS
+        // 1. Try Siswa login by NIS
         $siswa = Siswa::where('nis', $loginIdentifier)->with('user')->first();
-
         if ($siswa && $siswa->user) {
-            // Coba autentikasi dengan user yang terhubung ke siswa
-            // Password awal siswa adalah NIS mereka
-            if (Auth::attempt(['email' => $siswa->user->email, 'password' => $password], $this->boolean('remember'))) {
+            if (Auth::attempt(['email' => $siswa->user->email, 'password' => $password], $remember)) {
                 RateLimiter::clear($this->throttleKey());
                 return;
             }
         }
 
-        // Jika bukan siswa atau login NIS gagal, coba login sebagai Admin/Guru menggunakan input sebagai email
-        if (!Auth::attempt(['email' => $loginIdentifier, 'password' => $password], $this->boolean('remember'))) {
-            RateLimiter::hit($this->throttleKey());
-            throw ValidationException::withMessages([
-                'login_identifier' => trans('auth.failed'),
-            ]);
+        // 2. Try Guru login
+        // 2a. By NIP
+        $guruByNip = Guru::where('nip', $loginIdentifier)->with('user')->first();
+        if ($guruByNip && $guruByNip->user) {
+            if (Auth::attempt(['email' => $guruByNip->user->email, 'password' => $password], $remember)) {
+                RateLimiter::clear($this->throttleKey());
+                return;
+            }
         }
 
-        // Jika user yang login adalah siswa TAPI mencoba login via form email/password standar,
-        // pastikan tidak terjadi. Ini seharusnya sudah ditangani oleh pengecekan $siswa di atas.
-        $loggedInUser = Auth::user();
-        if ($loggedInUser instanceof User && $loggedInUser->hasRole('siswa') && filter_var($loginIdentifier, FILTER_VALIDATE_EMAIL)) {
-            // Jika siswa mencoba login dengan emailnya (yang pseudo) dan password NIS,
-            // ini mungkin berhasil jika email pseudo-nya kebetulan sama dengan input.
-            // Skenario ini seharusnya tidak menjadi masalah utama jika NIS adalah identifier utama.
+        // 2b. By Formatted Name (e.g., muhammad.habib)
+        // Hanya coba jika login identifier bukan format email dan bukan NIP yang sudah dicoba
+        if (!filter_var($loginIdentifier, FILTER_VALIDATE_EMAIL)) {
+            $formattedName = strtolower(str_replace(' ', '.', $loginIdentifier));
+            // Query ini akan mencari guru yang `nama_guru` nya setelah diformat cocok.
+            // Perlu dipastikan `nama_guru` setelah diformat cukup unik antar guru jika metode ini diandalkan.
+            $guruByName = Guru::where(DB::raw('LOWER(REPLACE(nama_guru, " ", "."))'), '=', $formattedName)
+                              ->with('user')->first();
+            if ($guruByName && $guruByName->user) {
+                if (Auth::attempt(['email' => $guruByName->user->email, 'password' => $password], $remember)) {
+                    RateLimiter::clear($this->throttleKey());
+                    return;
+                }
+            }
         }
 
+        // 3. Try Admin/Guru login by Email (fallback or primary for admins/gurus using actual email)
+        if (Auth::attempt(['email' => $loginIdentifier, 'password' => $password], $remember)) {
+            RateLimiter::clear($this->throttleKey());
+            return;
+        }
 
-        RateLimiter::clear($this->throttleKey());
+        // If all attempts fail
+        RateLimiter::hit($this->throttleKey());
+        throw ValidationException::withMessages([
+            'login_identifier' => trans('auth.failed'),
+        ]);
     }
 
     /**

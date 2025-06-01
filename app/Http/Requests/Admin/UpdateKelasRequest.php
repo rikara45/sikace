@@ -3,18 +3,15 @@
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule; // Import Rule jika Anda memerlukannya nanti (misal untuk unique)
+use Illuminate\Validation\Rule;
 
 class UpdateKelasRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     *
-     * @return bool
      */
     public function authorize(): bool
     {
-        // Memastikan hanya user dengan role 'admin' yang bisa melakukan request ini
         return $this->user()->hasRole('admin');
     }
 
@@ -25,31 +22,31 @@ class UpdateKelasRequest extends FormRequest
      */
     public function rules(): array
     {
-        // Ambil objek kelas dari route jika perlu validasi unique yg ignore diri sendiri
-        // $kelas = $this->route('kelas');
-
-        // Aturan validasi dasar untuk update
         return [
-            'nama_kelas' => ['required', 'string', 'max:50'],
-            'tahun_ajaran' => ['required', 'string', 'max:9', 'regex:/^\d{4}\/\d{4}$/'], // Memastikan format YYYY/YYYY
-            'wali_kelas_id' => ['nullable', 'integer', 'exists:gurus,id'], // Pastikan ID guru ada di tabel gurus jika diisi
+            'nama_kelas' => 'required|string|max:255',
+            'tahun_ajaran' => ['required', 'string', 'regex:/^\d{4}\/\d{4}$/'],
+            'wali_kelas_id' => 'nullable|integer|exists:gurus,id',
+            'mata_pelajaran_ids' => ['nullable', 'array'],
+            'mata_pelajaran_ids.*' => ['integer', 'exists:mata_pelajarans,id'],
+            'mata_pelajaran_guru' => ['nullable', 'array'],
+            'mata_pelajaran_guru.*' => ['nullable', 'integer', 'exists:gurus,id'],
         ];
     }
 
     /**
-     * Dapatkan pesan error kustom untuk aturan validasi. (Opsional)
+     * Get custom messages for validator errors.
      *
      * @return array<string, string>
      */
     public function messages(): array
     {
-        // Pesan error kustom agar lebih informatif
         return [
             'nama_kelas.required' => 'Nama kelas wajib diisi.',
             'tahun_ajaran.required' => 'Tahun ajaran wajib diisi.',
-            'tahun_ajaran.regex' => 'Format Tahun Ajaran harus YYYY/YYYY (contoh: 2024/2025).',
+            'tahun_ajaran.regex' => 'Format tahun ajaran tidak valid. Gunakan format YYYY/YYYY, contoh: 2023/2024.',
             'wali_kelas_id.exists' => 'Guru yang dipilih sebagai Wali Kelas tidak valid.',
             'wali_kelas_id.integer' => 'ID Wali Kelas tidak valid.',
+            'mata_pelajaran_guru.*.exists' => 'Guru yang dipilih untuk mata pelajaran tidak valid.',
         ];
     }
 }
