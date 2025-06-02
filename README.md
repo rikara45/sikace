@@ -32,7 +32,7 @@
 <p>Instruksi langkah demi langkah untuk menginstal dan menjalankan proyek ini di lingkungan lokal Anda.</p>
 
 <ol>
-    <li>Clone repositori ini: <code>git clone [URL_REPO_ANDA]</code></li>
+    <li>Clone repositori ini: <code>git clone https://github.com/rikara45/sikace</code></li>
     <li>Masuk ke direktori proyek: <code>cd nama-folder-proyek</code></li>
     <li>Instal dependensi Composer: <code>composer install</code></li>
     <li>Instal dependensi Node.js: <code>npm install</code> atau <code>yarn install</code></li>
