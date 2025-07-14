@@ -10,24 +10,15 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use App\Models\Siswa;
 use App\Models\User;
-use App\Models\Guru; // Tambahkan ini
-use Illuminate\Support\Facades\DB; // Tambahkan ini
-
+use App\Models\Guru;
 class LoginRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
+    // ... (metode authorize dan rules tetap sama) ...
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
@@ -49,49 +40,51 @@ class LoginRequest extends FormRequest
         $password = $this->input('password');
         $remember = $this->boolean('remember');
 
-        // 1. Try Siswa login by NIS
-        $siswa = Siswa::where('nis', $loginIdentifier)->with('user')->first();
-        if ($siswa && $siswa->user) {
-            if (Auth::attempt(['email' => $siswa->user->email, 'password' => $password], $remember)) {
+        $credentials = ['password' => $password];
+
+        // Attempt 1: Cek jika identifier adalah email (untuk Admin atau Guru dengan email asli)
+        if (filter_var($loginIdentifier, FILTER_VALIDATE_EMAIL)) {
+            $credentials['email'] = $loginIdentifier;
+            if (Auth::attempt($credentials, $remember)) {
                 RateLimiter::clear($this->throttleKey());
                 return;
             }
         }
 
-        // 2. Try Guru login
-        // 2a. By NIP
-        $guruByNip = Guru::where('nip', $loginIdentifier)->with('user')->first();
-        if ($guruByNip && $guruByNip->user) {
-            if (Auth::attempt(['email' => $guruByNip->user->email, 'password' => $password], $remember)) {
+        // Attempt 2: Cek jika identifier adalah username (untuk Guru)
+        // Cek ini dilakukan jika identifier bukan email, atau login email gagal
+        $credentialsForUsername = $credentials;
+        $credentialsForUsername['username'] = $loginIdentifier;
+        if (Auth::attempt($credentialsForUsername, $remember)) {
                 RateLimiter::clear($this->throttleKey());
                 return;
             }
-        }
 
-        // 2b. By Formatted Name (e.g., muhammad.habib)
-        // Hanya coba jika login identifier bukan format email dan bukan NIP yang sudah dicoba
-        if (!filter_var($loginIdentifier, FILTER_VALIDATE_EMAIL)) {
-            $formattedName = strtolower(str_replace(' ', '.', $loginIdentifier));
-            // Query ini akan mencari guru yang `nama_guru` nya setelah diformat cocok.
-            // Perlu dipastikan `nama_guru` setelah diformat cukup unik antar guru jika metode ini diandalkan.
-            $guruByName = Guru::where(DB::raw('LOWER(REPLACE(nama_guru, " ", "."))'), '=', $formattedName)
-                              ->with('user')->first();
-            if ($guruByName && $guruByName->user) {
-                if (Auth::attempt(['email' => $guruByName->user->email, 'password' => $password], $remember)) {
+        // Attempt 3: Cek jika identifier adalah NIP Guru
+        $guru = Guru::where('nip', $loginIdentifier)->with('user')->first();
+        if ($guru && $guru->user) {
+            $credentialsForNip = $credentials;
+            $credentialsForNip['email'] = $guru->user->email;
+            if (Auth::attempt($credentialsForNip, $remember)) {
                     RateLimiter::clear($this->throttleKey());
                     return;
                 }
             }
-        }
 
-        // 3. Try Admin/Guru login by Email (fallback or primary for admins/gurus using actual email)
-        if (Auth::attempt(['email' => $loginIdentifier, 'password' => $password], $remember)) {
+        // Attempt 4: Cek jika identifier adalah NIS Siswa
+        $siswa = Siswa::where('nis', $loginIdentifier)->with('user')->first();
+        if ($siswa && $siswa->user) {
+            $credentialsForNis = $credentials;
+            $credentialsForNis['email'] = $siswa->user->email; // Gunakan pseudo-email
+            if (Auth::attempt($credentialsForNis, $remember)) {
             RateLimiter::clear($this->throttleKey());
             return;
         }
+        }
 
-        // If all attempts fail
+        // Jika semua upaya gagal
         RateLimiter::hit($this->throttleKey());
+
         throw ValidationException::withMessages([
             'login_identifier' => trans('auth.failed'),
         ]);

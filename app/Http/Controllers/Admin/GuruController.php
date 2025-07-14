@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 
 class GuruController extends Controller
 {
@@ -20,13 +22,14 @@ class GuruController extends Controller
     {
         DB::beginTransaction();
         try {
-            $validated = $request->validated(); // $validated['email'] tidak akan ada
+            $validated = $request->validated();
             $userId = $guru->user_id;
             $userToUpdate = $guru->user;
 
             if ($userToUpdate) { 
                 $userData = [
                     'name' => $validated['nama_guru'],
+                    'username' => $validated['username'] ?? null,
                 ];
 
                 $currentEmailIsOldNipBased = $guru->getOriginal('nip') && $userToUpdate->email === ($guru->getOriginal('nip') . '@teacher.sikace.internal');
@@ -42,15 +45,12 @@ class GuruController extends Controller
                     }
                     $userData['email'] = $newNipBasedEmail;
                 }
-                // Logika untuk $validated['email'] tidak lagi relevan di sini.
-                
                 if (!empty($validated['password'])) {
                     $userData['password'] = Hash::make($validated['password']);
                 }
                 $userToUpdate->update($userData);
 
             } else { 
-                // Fallback jika guru belum punya akun user
                 $userEmailForCreation = $validated['nip'] . '@teacher.sikace.internal';
                 $userPassword = $validated['password'] ?? $validated['nip'];
                 
@@ -63,6 +63,7 @@ class GuruController extends Controller
 
                 $newUser = User::create([
                     'name' => $validated['nama_guru'],
+                    'username' => $validated['username'] ?? null,
                     'email' => $userEmailForCreation,
                     'password' => Hash::make($userPassword),
                     'email_verified_at' => now(),
@@ -153,6 +154,7 @@ class GuruController extends Controller
 
             $user = User::create([
                 'name' => $validated['nama_guru'],
+                'username' => $validated['username'] ?? null,
                 'email' => $userEmailForCreation,
                 'password' => Hash::make($userPassword),
                 'email_verified_at' => now(),
@@ -182,7 +184,7 @@ class GuruController extends Controller
     
     public function show(Guru $guru)
     {
-        $guru->load('user'); // Pastikan user dimuat
+        $guru->load('user');
         $teachingAssignments = DB::table('kelas_mata_pelajaran as kmp')
             ->join('mata_pelajarans as mp', 'kmp.mata_pelajaran_id', '=', 'mp.id')
             ->join('kelas as k', 'kmp.kelas_id', '=', 'k.id')
@@ -198,7 +200,7 @@ class GuruController extends Controller
 
     public function edit(Guru $guru)
     {
-        $guru->load('user'); // Muat relasi user
+        $guru->load('user');
         $semuaMapel = MataPelajaran::orderBy('nama_mapel')->get();
         $mapelDiampuIds = $guru->mataPelajaransDiampu()->pluck('mata_pelajarans.id')->toArray();
 
