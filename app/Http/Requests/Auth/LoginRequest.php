@@ -13,7 +13,6 @@ use App\Models\User;
 use App\Models\Guru;
 class LoginRequest extends FormRequest
 {
-    // ... (metode authorize dan rules tetap sama) ...
     public function authorize(): bool
     {
         return true;
@@ -52,13 +51,12 @@ class LoginRequest extends FormRequest
         }
 
         // Attempt 2: Cek jika identifier adalah username (untuk Guru)
-        // Cek ini dilakukan jika identifier bukan email, atau login email gagal
         $credentialsForUsername = $credentials;
         $credentialsForUsername['username'] = $loginIdentifier;
         if (Auth::attempt($credentialsForUsername, $remember)) {
-                RateLimiter::clear($this->throttleKey());
-                return;
-            }
+            RateLimiter::clear($this->throttleKey());
+            return;
+        }
 
         // Attempt 3: Cek jika identifier adalah NIP Guru
         $guru = Guru::where('nip', $loginIdentifier)->with('user')->first();
@@ -66,20 +64,20 @@ class LoginRequest extends FormRequest
             $credentialsForNip = $credentials;
             $credentialsForNip['email'] = $guru->user->email;
             if (Auth::attempt($credentialsForNip, $remember)) {
-                    RateLimiter::clear($this->throttleKey());
-                    return;
-                }
+                RateLimiter::clear($this->throttleKey());
+                return;
             }
+        }
 
         // Attempt 4: Cek jika identifier adalah NIS Siswa
         $siswa = Siswa::where('nis', $loginIdentifier)->with('user')->first();
         if ($siswa && $siswa->user) {
             $credentialsForNis = $credentials;
-            $credentialsForNis['email'] = $siswa->user->email; // Gunakan pseudo-email
+            $credentialsForNis['email'] = $siswa->user->email;
             if (Auth::attempt($credentialsForNis, $remember)) {
-            RateLimiter::clear($this->throttleKey());
-            return;
-        }
+                RateLimiter::clear($this->throttleKey());
+                return;
+            }
         }
 
         // Jika semua upaya gagal

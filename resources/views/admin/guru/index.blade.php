@@ -64,9 +64,9 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 border border-gray-300 text-center">{{ $gurus->firstItem() + $index }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300 text-center">{{ $guru->nip ?? '-' }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300 text-center">{{ $guru->nama_guru }}</td>
-                                        {{-- Ubah Data yang Ditampilkan menjadi format nama, fallback ke NIP --}}
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border border-gray-300 text-center">
-                                            {{ $guru->nama_guru ? strtolower(str_replace(' ', '.', $guru->nama_guru)) : ($guru->nip ?? '-') }}
+                                            {{-- Perubahan di sini --}}
+                                            {{ $guru->user?->username ?? $guru->nip }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium border border-gray-300 text-center">
                                             <div class="flex flex-wrap gap-2 justify-center">

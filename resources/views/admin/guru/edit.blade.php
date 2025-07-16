@@ -53,30 +53,7 @@
                         </div>
 
                         {{-- Mapel Diampu dan Tombol Aksi --}}
-                        {{-- (Tidak ada perubahan di sini, biarkan seperti semula) --}}
-                        <hr class="my-6">
-
-                        <h3 class="text-lg font-medium text-gray-900 mb-2">Mata Pelajaran yang Diampu</h3>
-                        <div class="mt-4 space-y-2">
-                             <x-input-label :value="__('Pilih mata pelajaran yang diajar oleh guru ini:')" />
-                             @if($semuaMapel->count() > 0)
-                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4 border border-gray-200 rounded-md max-h-60 overflow-y-auto">
-                                    @foreach ($semuaMapel as $mapel)
-                                        <label for="mapel_{{ $mapel->id }}" class="flex items-center">
-                                            <input type="checkbox" id="mapel_{{ $mapel->id }}" name="mapel_diampu[]" value="{{ $mapel->id }}"
-                                                   class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
-                                                   @if(in_array($mapel->id, old('mapel_diampu', $mapelDiampuIds))) checked @endif
-                                            >
-                                            <span class="ml-2 text-sm text-gray-600">{{ $mapel->nama_mapel }} {{ $mapel->kode_mapel ? '('.$mapel->kode_mapel.')' : '' }}</span>
-                                        </label>
-                                    @endforeach
-                                </div>
-                             @else
-                                <p class="text-sm text-gray-500">Belum ada data mata pelajaran. Silakan tambahkan mata pelajaran terlebih dahulu.</p>
-                             @endif
-                             <x-input-error :messages="$errors->get('mapel_diampu')" class="mt-2" />
-                        </div>
-
+                        {{-- (Bagian tambah mata pelajaran diampu dihapus sesuai permintaan) --}}
                         <div class="flex items-center justify-end mt-6">
                             <a href="{{ route('admin.guru.index') }}" class="text-sm text-gray-600 hover:text-gray-900 mr-4">
                                 {{ __('Batal') }}
@@ -84,7 +61,7 @@
                             <x-primary-button>
                                 {{ __('Update Data Guru') }}
                             </x-primary-button>
-                    </div>
+                        </div>
                     </form>
                 </div>
             </div>

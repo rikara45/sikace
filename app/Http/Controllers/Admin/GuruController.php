@@ -26,7 +26,7 @@ class GuruController extends Controller
             $userId = $guru->user_id;
             $userToUpdate = $guru->user;
 
-            if ($userToUpdate) { 
+            if ($userToUpdate) {
                 $userData = [
                     'name' => $validated['nama_guru'],
                     'username' => $validated['username'] ?? null,
@@ -40,8 +40,8 @@ class GuruController extends Controller
                     if (User::where('email', $newNipBasedEmail)->where('id', '!=', $userToUpdate->id)->exists()) {
                         DB::rollBack();
                         return redirect()->back()
-                                         ->with('error', "Perubahan NIP akan menghasilkan email internal '{$newNipBasedEmail}' yang sudah digunakan user lain.")
-                                         ->withInput();
+                            ->with('error', "Perubahan NIP akan menghasilkan email internal '{$newNipBasedEmail}' yang sudah digunakan user lain.")
+                            ->withInput();
                     }
                     $userData['email'] = $newNipBasedEmail;
                 }
@@ -49,16 +49,15 @@ class GuruController extends Controller
                     $userData['password'] = Hash::make($validated['password']);
                 }
                 $userToUpdate->update($userData);
-
-            } else { 
+            } else {
                 $userEmailForCreation = $validated['nip'] . '@teacher.sikace.internal';
                 $userPassword = $validated['password'] ?? $validated['nip'];
-                
+
                 if (User::where('email', $userEmailForCreation)->exists()) {
                     DB::rollBack();
                     return redirect()->back()
-                                     ->with('error', 'Email internal yang akan dibuat untuk guru ini sudah terpakai.')
-                                     ->withInput();
+                        ->with('error', 'Email internal yang akan dibuat untuk guru ini sudah terpakai.')
+                        ->withInput();
                 }
 
                 $newUser = User::create([
@@ -88,14 +87,14 @@ class GuruController extends Controller
             DB::commit();
 
             return redirect()->route('admin.guru.index')
-                             ->with('success', 'Data guru berhasil diperbarui.');
+                ->with('success', 'Data guru berhasil diperbarui.');
 
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Kesalahan saat memperbarui data guru: ' . $e->getMessage() . ' Stack: ' . $e->getTraceAsString());
             return redirect()->back()
-                             ->with('error', 'Gagal memperbarui data guru: Terjadi kesalahan pada sistem.')
-                             ->withInput();
+                ->with('error', 'Gagal memperbarui data guru: Terjadi kesalahan pada sistem.')
+                ->withInput();
         }
     }
     
