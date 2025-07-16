@@ -6,6 +6,8 @@
     <title>Login SIKACE</title>
     <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    {{-- Font Awesome untuk ikon panah --}}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
     <style>
         * {
             margin: 0;
@@ -17,16 +19,70 @@
             display: flex;
             height: 100vh;
             flex-direction: row;
-            background-color: #f9fafb; /* Add a subtle background */
+            background-color: #f9fafb;
         }
 
         .left {
-            flex-basis: 50%; /* Keep 50% basis */
+            flex-basis: 50%;
+            position: relative; /* Diubah untuk menampung gambar dan tombol */
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            background-color: #1a202c;
         }
+
+        /* --- CSS untuk Gambar Rotasi --- */
+        .auth-bg-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            transition: opacity 1.5s ease-in-out; /* Durasi dan timing untuk fade */
+        }
+
+        /* --- CSS untuk Tombol Panah --- */
+        .image-controls {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 1.5rem;
+            transform: translateY(-50%);
+            z-index: 10;
+        }
+
+        .arrow-button {
+            background-color: rgba(0, 0, 0, 0.3);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            cursor: pointer;
+            opacity: 0; /* Sembunyikan secara default */
+            transition: opacity 0.3s ease-in-out, background-color 0.3s ease-in-out;
+        }
+
+        .left:hover .arrow-button {
+            opacity: 0.7; /* Munculkan saat hover di area gambar */
+        }
+
+        .arrow-button:hover {
+            opacity: 1;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        /* --- Akhir CSS Tombol Panah --- */
+
 
         .bg-desktop {
             display: block;
@@ -43,23 +99,23 @@
         }
 
         .right {
-            flex: 1; /* Takes remaining space */
+            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 2rem; /* Keep padding for overall spacing */
+            padding: 2rem;
             background-color: white;
         }
 
         .form-container {
-            max-width: 400px; /* Keep max-width */
+            max-width: 400px;
             width: 100%;
         }
 
         .logo {
             display: flex;
             align-items: center;
-            margin-bottom: 1.5rem; /* Reduced logo margin */
+            margin-bottom: 1.5rem;
         }
 
         .logo img {
@@ -69,46 +125,45 @@
         }
 
         .logo h1 {
-            /* font-size: 1.25rem; /* Slightly reduce if needed, check original */
-             font-size: 23px; /* Match original CSS */
+            font-size: 23px;
             font-weight: 600;
             color: #1f2937;
         }
 
         h2 {
-            font-size: 1.375rem; /* Reduced h2 size (22px) */
+            font-size: 1.375rem;
             font-weight: 600;
-            margin-bottom: 0.2rem; /* Slightly reduced margin */
+            margin-bottom: 0.2rem;
             color: #111827;
         }
 
         p {
             color: #6b7280;
-            margin-bottom: 1.25rem; /* Reduced paragraph margin */
-            font-size: 0.875rem; /* Reduced paragraph size (14px) */
-             line-height: 1.4; /* Adjust line height */
+            margin-bottom: 1.25rem;
+            font-size: 0.875rem;
+             line-height: 1.4;
         }
 
         label {
             display: block;
-            font-size: 0.875rem; /* 14px */
+            font-size: 0.875rem;
             margin-bottom: 0.25rem;
             color: #374151;
-            font-weight: 500; /* Keep label weight */
+            font-weight: 500;
         }
 
-        input[type="text"], /* Apply to text input as well */
+        input[type="text"],
         input[type="password"] {
             width: 100%;
-            padding: 0.65rem 0.75rem; /* Slightly reduced vertical padding */
+            padding: 0.65rem 0.75rem;
             border: 1px solid #d1d5db;
             border-radius: 0.375rem;
-            margin-bottom: 0.25rem; /* Reduced margin below input */
-            font-size: 0.9rem; /* Slightly reduced input font size (14.4px) */
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
             transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-            line-height: 1.5; /* Ensure consistent line height */
+            line-height: 1.5;
         }
-         input[type="text"]:focus, /* Apply to text input as well */
+         input[type="text"]:focus,
          input[type="email"]:focus,
          input[type="password"]:focus {
             outline: none;
@@ -118,9 +173,9 @@
 
         .input-error-message {
             color: #dc2626;
-            font-size: 0.75rem; /* 12px */
-            margin-top: 0.1rem; /* Minimal top margin */
-            margin-bottom: 0.6rem; /* Space before next element */
+            font-size: 0.75rem;
+            margin-top: 0.1rem;
+            margin-bottom: 0.6rem;
             display: block;
         }
 
@@ -129,8 +184,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.25rem; /* Reduced margin */
-            font-size: 0.875rem; /* 14px */
+            margin-bottom: 1.25rem;
+            font-size: 0.875rem;
         }
 
         .options label {
@@ -139,16 +194,15 @@
             color: #4b5563;
             margin-bottom: 0;
             font-weight: 400;
-            cursor: pointer; /* Make label clickable */
+            cursor: pointer;
         }
 
         .options input[type="checkbox"] {
-             margin-right: 0.4rem; /* Slightly reduced margin */
+             margin-right: 0.4rem;
              border-radius: 0.25rem;
              border-color: #d1d5db;
              color: #22c55e;
              cursor: pointer;
-             /* Vertically align checkbox slightly better if needed */
              vertical-align: middle;
         }
         .options input[type="checkbox"]:focus {
@@ -156,7 +210,7 @@
              box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.3);
              border-color: #22c55e;
         }
-        .options span { /* Target the text span */
+        .options span {
              vertical-align: middle;
         }
 
@@ -173,34 +227,33 @@
         .btn-green {
             background-color: #22c55e;
             color: white;
-            padding: 0.7rem 0; /* Adjusted padding */
+            padding: 0.7rem 0;
             border: none;
             border-radius: 0.375rem;
             font-weight: 600;
             width: 100%;
             cursor: pointer;
-            font-size: 0.9rem; /* Reduced button font size */
+            font-size: 0.9rem;
             transition: background-color 0.2s ease-in-out;
-            text-align: center; /* Ensure text is centered */
-            line-height: 1.5; /* Ensure consistent line height */
+            text-align: center;
+            line-height: 1.5;
         }
 
         .btn-green:hover {
             background-color: #16a34a;
         }
 
-        /* Spacing adjustment for the password field */
         .password-field-container {
-             margin-top: 0.75rem; /* Adjusted spacing */
+             margin-top: 0.75rem;
         }
 
         .session-status {
-            margin-bottom: 0.75rem; /* Reduced margin */
+            margin-bottom: 0.75rem;
             font-weight: 500;
-            font-size: 0.8rem; /* Slightly smaller status text */
+            font-size: 0.8rem;
             color: #16a34a;
             background-color: #d1fae5;
-            padding: 0.6rem 0.75rem; /* Adjusted padding */
+            padding: 0.6rem 0.75rem;
             border-radius: 0.375rem;
             border-left: 4px solid #10b981;
         }
@@ -216,7 +269,7 @@
 
             .left {
                 flex-basis: auto;
-                height: 180px; /* Adjusted mobile height */
+                height: 180px;
                 width: 100%;
             }
 
@@ -229,11 +282,15 @@
                 height: 100%;
                 width: 100%;
             }
+            
+            .image-controls { /* Sembunyikan tombol panah di mobile */
+                display: none;
+            }
 
             .right {
                 flex: 1;
                 width: 100%;
-                padding: 1.25rem; /* Adjusted mobile padding */
+                padding: 1.25rem;
             }
 
             .form-container {
@@ -241,28 +298,27 @@
             }
 
             .logo h1 {
-                font-size: 1rem; /* Adjust mobile logo size */
+                font-size: 1rem;
             }
 
             h2 {
-                font-size: 1.25rem; /* Adjust mobile heading size */
+                font-size: 1.25rem;
             }
 
             p {
-                font-size: 0.8rem; /* Adjust mobile paragraph size */
+                font-size: 0.8rem;
                 margin-bottom: 1rem;
             }
 
-             input[type="text"], /* Apply to text input as well */
+             input[type="text"],
              input[type="password"] {
-                 font-size: 0.85rem; /* Adjust mobile input size */
+                 font-size: 0.85rem;
                  padding: 0.6rem 0.7rem;
              }
 
-
             .btn-green {
-                padding: 0.65rem 0; /* Adjust mobile button padding */
-                font-size: 0.85rem; /* Adjust mobile button font size */
+                padding: 0.65rem 0;
+                font-size: 0.85rem;
             }
         }
 
@@ -270,10 +326,15 @@
 </head>
 <body>
     <div class="left">
-        <img src="{{ asset('images/background1.png') }}" class="bg-desktop" alt="Background Desktop">
-        {{-- Jika Anda punya gambar background khusus mobile, gunakan ini --}}
-        <img src="{{ asset('images/background2.png') }}" class="bg-mobile" alt="Background Mobile">
-        {{-- Jika tidak, Anda bisa gunakan gambar yang sama atau sembunyikan .left di mobile --}}
+        {{-- Div untuk gambar rotasi --}}
+        <div id="auth-bg-1" class="auth-bg-image"></div>
+        <div id="auth-bg-2" class="auth-bg-image" style="opacity: 0;"></div>
+        
+        {{-- Tombol panah untuk navigasi gambar --}}
+        <div class="image-controls">
+            <button id="prev-image" class="arrow-button"><i class="fas fa-chevron-left"></i></button>
+            <button id="next-image" class="arrow-button"><i class="fas fa-chevron-right"></i></button>
+        </div>
     </div>
     <div class="right">
         <div class="form-container">
@@ -293,7 +354,6 @@
                 <div>
                     <label for="login_identifier">Username / NIS (Untuk Siswa) | NIP (Untuk Guru)</label>
                     <input id="login_identifier" type="text" name="login_identifier" value="{{ old('login_identifier') }}" required autofocus autocomplete="username">
-                    {{-- Error bisa untuk login_identifier, email, atau nis --}}
                     @error('login_identifier') <span class="input-error-message">{{ $message }}</span> @enderror
                     @error('email') <span class="input-error-message">{{ $message }}</span> @enderror
                     @error('nis') <span class="input-error-message">{{ $message }}</span> @enderror
@@ -312,12 +372,6 @@
                         <input id="remember_me" type="checkbox" name="remember">
                         <span>Ingat saya</span>
                     </label>
-                    {{-- Hapus Lupa Password jika tidak relevan untuk NIS --}}
-                    {{-- @if (Route::has('password.request'))
-                        <a href="{{ route('password.request') }}">
-                            Lupa kata sandi?
-                        </a>
-                    @endif --}}
                 </div>
 
                 <button type="submit" class="btn-green">
@@ -326,5 +380,91 @@
             </form>
         </div>
     </div>
+
+    {{-- JavaScript untuk Rotasi Gambar --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Pastikan Anda sudah meletakkan gambar-gambar ini di folder public
+            const images = [
+                "{{ asset('images/upacara.jpg') }}",
+                "{{ asset('images/sehat.jpg') }}",
+                "{{ asset('images/hut guru.jpg') }}"
+            ];
+
+            const bg1 = document.getElementById('auth-bg-1');
+            const bg2 = document.getElementById('auth-bg-2');
+            const prevButton = document.getElementById('prev-image');
+            const nextButton = document.getElementById('next-image');
+            
+            if (bg1 && bg2) {
+                let currentIndex = 0;
+                let currentBg = bg1;
+                let nextBg = bg2;
+                let imageInterval;
+                const intervalDuration = 5000; // Durasi diubah menjadi 5 detik
+
+                function preloadImage(url) {
+                    const img = new Image();
+                    img.src = url;
+                }
+
+                function changeImage(newIndex) {
+                    // Penanganan index agar berputar (looping)
+                    if (newIndex < 0) {
+                        newIndex = images.length - 1;
+                    } else if (newIndex >= images.length) {
+                        newIndex = 0;
+                    }
+                    
+                    currentIndex = newIndex;
+
+                    // Set gambar berikutnya ke div yang tersembunyi
+                    nextBg.style.backgroundImage = `url('${images[currentIndex]}')`;
+                    
+                    // Lakukan cross-fade
+                    currentBg.style.opacity = '0';
+                    nextBg.style.opacity = '1';
+                    
+                    // Tukar peran div untuk siklus berikutnya
+                    const temp = currentBg;
+                    currentBg = nextBg;
+                    nextBg = temp;
+
+                    // Preload gambar selanjutnya
+                    preloadImage(images[(currentIndex + 1) % images.length]);
+                }
+
+                function startImageRotation() {
+                    stopImageRotation(); // Hentikan interval sebelumnya jika ada
+                    imageInterval = setInterval(() => {
+                        changeImage(currentIndex + 1);
+                    }, intervalDuration);
+                }
+
+                function stopImageRotation() {
+                    clearInterval(imageInterval);
+                }
+
+                // Event listener untuk tombol panah
+                if (prevButton && nextButton) {
+                    prevButton.addEventListener('click', () => {
+                        stopImageRotation();
+                        changeImage(currentIndex - 1);
+                        startImageRotation(); // Mulai lagi interval setelah klik
+                    });
+
+                    nextButton.addEventListener('click', () => {
+                        stopImageRotation();
+                        changeImage(currentIndex + 1);
+                        startImageRotation(); // Mulai lagi interval setelah klik
+                    });
+                }
+                
+                // Set gambar awal dan mulai rotasi otomatis
+                changeImage(0);
+                startImageRotation();
+            }
+        });
+    </script>
 </body>
 </html>
